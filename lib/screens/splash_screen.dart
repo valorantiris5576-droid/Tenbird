@@ -15,7 +15,7 @@ class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   static const _lottieAsset = 'assets/man running.json';
   static const _runnerWidth = 140.0;
-  static const _runDuration = Duration(milliseconds: 5200);
+  static const _runDuration = Duration(milliseconds: 4200);
 
   late final AnimationController _controller;
   Animation<double>? _position;
@@ -48,7 +48,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     Navigator.of(context).pushReplacement(
       PageRouteBuilder<void>(
-        transitionDuration: const Duration(milliseconds: 700),
+        transitionDuration: const Duration(milliseconds: 1050),
         pageBuilder: (_, __, ___) => const LoginScreen(),
         transitionsBuilder: (_, animation, __, child) {
           return FadeTransition(opacity: animation, child: child);

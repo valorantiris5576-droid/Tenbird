@@ -1,11 +1,9 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-
+import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'screens/splash_screen.dart';
-import 'theme/app_colors.dart';
 
-Future<void> main() async {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const StepGiveApp());
@@ -20,13 +18,9 @@ class StepGiveApp extends StatelessWidget {
       title: 'StepGive',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        scaffoldBackgroundColor: AppColors.background,
-        colorScheme: ColorScheme.dark(
-          primary: AppColors.accent,
-          surface: AppColors.background,
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          errorStyle: const TextStyle(color: Colors.redAccent),
+        scaffoldBackgroundColor: const Color(0xFF0A0E1A),
+        colorScheme: const ColorScheme.dark(
+          primary: Color(0xFF00C896),
         ),
       ),
       home: const SplashScreen(),

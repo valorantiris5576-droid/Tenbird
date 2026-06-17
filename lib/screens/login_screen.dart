@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../services/auth_service.dart';
 import '../theme/app_colors.dart';
+
 import '../widgets/glass_container.dart';
 import 'sign_up_screen.dart';
 
@@ -16,7 +17,6 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
-  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
   bool _isLoading = false;
@@ -27,7 +27,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void dispose() {
     _usernameController.dispose();
-    _emailController.dispose();
+
     _passwordController.dispose();
     super.dispose();
   }
@@ -43,7 +43,6 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       await AuthService.signIn(
         username: _usernameController.text,
-        email: _emailController.text,
         password: _passwordController.text,
       );
     } on FirebaseAuthException catch (e) {
@@ -77,7 +76,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _showForgotPasswordDialog() async {
-    final resetEmailController = TextEditingController(text: _emailController.text);
+    final resetEmailController = TextEditingController(text: '');
 
     await showDialog<void>(
       context: context,
@@ -205,7 +204,7 @@ class _LoginScreenState extends State<LoginScreen> {
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
                 child: Column(
                   children: [
                     const Text(
@@ -233,7 +232,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-                            const SizedBox(height: 32),
+                            const SizedBox(height: 15),
                             GlassTextField(
                               controller: _usernameController,
                               label: 'Username',
@@ -244,19 +243,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   : null,
                             ),
                             const SizedBox(height: 14),
-                            GlassTextField(
-                              controller: _emailController,
-                              label: 'Email',
-                              icon: Icons.email_outlined,
-                              keyboardType: TextInputType.emailAddress,
-                              textInputAction: TextInputAction.next,
-                              validator: (v) {
-                                if (v == null || v.trim().isEmpty) return 'Email is required';
-                                if (!v.contains('@')) return 'Enter a valid email';
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 14),
+                            
                             GlassTextField(
                               controller: _passwordController,
                               label: 'Password',

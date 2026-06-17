@@ -7,33 +7,32 @@ class AuthService {
 
   static final _auth = FirebaseAuth.instance;
   static final _users = FirebaseFirestore.instance.collection('users');
+  
+static Future<void> signIn({
+  required String username,
+  required String password,
+}) async {
+  final normalizedUsername = username.trim();
 
-  static Future<void> signIn({
-    required String username,
-    required String email,
-    required String password,
-  }) async {
-    final normalizedUsername = username.trim();
-    final normalizedEmail = email.trim().toLowerCase();
+  final match = await _users
+      .where('username', isEqualTo: normalizedUsername)
+      .limit(1)
+      .get();
 
-    final match = await _users
-        .where('email', isEqualTo: normalizedEmail)
-        .where('username', isEqualTo: normalizedUsername)
-        .limit(1)
-        .get();
-
-    if (match.docs.isEmpty) {
-      throw FirebaseAuthException(
-        code: 'invalid-credential',
-        message: 'Username and email do not match our records.',
-      );
-    }
-
-    await _auth.signInWithEmailAndPassword(
-      email: normalizedEmail,
-      password: password,
+  if (match.docs.isEmpty) {
+    throw FirebaseAuthException(
+      code: 'invalid-credential',
+      message: 'Username not found.',
     );
   }
+
+  final email = match.docs.first['email'] as String;
+
+  await _auth.signInWithEmailAndPassword(
+    email: email,
+    password: password,
+  );
+}
 
   static Future<void> signUp({
     required String username,
