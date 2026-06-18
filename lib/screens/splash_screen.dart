@@ -15,7 +15,7 @@ class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   static const _lottieAsset = 'assets/man running.json';
   static const _runnerWidth = 140.0;
-  static const _runDuration = Duration(milliseconds: 4200);
+  static const _runDuration = Duration(milliseconds: 3700);
 
   late final AnimationController _controller;
   Animation<double>? _position;
@@ -36,7 +36,7 @@ class _SplashScreenState extends State<SplashScreen>
     final screenWidth = MediaQuery.sizeOf(context).width;
     _position = Tween<double>(
       begin: -_runnerWidth,
-      end: screenWidth +_runnerWidth,
+      end: screenWidth + _runnerWidth,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.linear));
 
     setState(() {});
@@ -45,15 +45,21 @@ class _SplashScreenState extends State<SplashScreen>
 
   void _onAnimationStatus(AnimationStatus status) {
     if (status != AnimationStatus.completed || !mounted) return;
-
     Navigator.of(context).pushReplacement(
       PageRouteBuilder<void>(
         transitionDuration: const Duration(milliseconds: 1050),
-        pageBuilder: (_, __, ___) => const LoginScreen(),
-        transitionsBuilder: (_, animation, __, child) {
+        pageBuilder: (context, animation, secondaryAnimation) => const LoginScreen(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(opacity: animation, child: child);
         },
       ),
+    );
+  }
+
+  void _skipToLogin() {
+    _controller.stop();
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
     );
   }
 
@@ -71,6 +77,20 @@ class _SplashScreenState extends State<SplashScreen>
 
     return Scaffold(
       backgroundColor: AppColors.background,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: IconButton(
+              onPressed: _skipToLogin,
+              icon: const Icon(Icons.close, color: Colors.white54),
+            ),
+          ),
+        ],
+      ),
       body: position == null
           ? const SizedBox.shrink()
           : AnimatedBuilder(

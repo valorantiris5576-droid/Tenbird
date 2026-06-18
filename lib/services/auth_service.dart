@@ -1,39 +1,33 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 
 class AuthService {
   AuthService._();
 
   static final _auth = FirebaseAuth.instance;
   static final _users = FirebaseFirestore.instance.collection('users');
-  
-static Future<void> signIn({
-  required String username,
-  required String password,
-}) async {
-  final normalizedUsername = username.trim();
 
-  final match = await _users
-      .where('username', isEqualTo: normalizedUsername)
-      .limit(1)
-      .get();
-
-  if (match.docs.isEmpty) {
-    throw FirebaseAuthException(
-      code: 'invalid-credential',
-      message: 'Username not found.',
-    );
+  // 유저네임으로 로그인
+  static Future<void> signIn({
+    required String username,
+    required String password,
+  }) async {
+    final normalizedUsername = username.trim();
+    final match = await _users
+        .where('username', isEqualTo: normalizedUsername)
+        .limit(1)
+        .get();
+    if (match.docs.isEmpty) {
+      throw FirebaseAuthException(
+        code: 'invalid-credential',
+        message: 'Username not found.',
+      );
+    }
+    final email = match.docs.first['email'] as String;
+    await _auth.signInWithEmailAndPassword(email: email, password: password);
   }
 
-  final email = match.docs.first['email'] as String;
-
-  await _auth.signInWithEmailAndPassword(
-    email: email,
-    password: password,
-  );
-}
-
+  // 회원가입
   static Future<void> signUp({
     required String username,
     required String email,
@@ -57,7 +51,6 @@ static Future<void> signIn({
       email: normalizedEmail,
       password: password,
     );
-
     final user = credential.user;
     if (user == null) {
       throw FirebaseAuthException(
@@ -65,7 +58,6 @@ static Future<void> signIn({
         message: 'Account could not be created.',
       );
     }
-
     await user.updateDisplayName(normalizedUsername);
     await _users.doc(user.uid).set({
       'username': normalizedUsername,
@@ -74,66 +66,57 @@ static Future<void> signIn({
     });
   }
 
-  static Future<void> sendPasswordReset(String email) async {
-    await _auth.sendPasswordResetEmail(email: email.trim().toLowerCase());
+  // username 존재 확인
+  static Future<bool> usernameExists(String username) async {
+    final match = await _users
+        .where('username', isEqualTo: username.trim())
+        .limit(1)
+        .get();
+    return match.docs.isNotEmpty;
   }
 
-  static Future<void> signInWithFacebook() async {
-    final result = await FacebookAuth.instance.login(
-      permissions: ['email', 'public_profile'],
-    );
+  // username + email 확인 후 재설정 링크 발송
+  static Future<void> sendPasswordResetWithEmailUpdate(String username, String email) async {
+    final normalizedEmail = email.trim().toLowerCase();
+    final normalizedUsername = username.trim();
 
-    if (result.status == LoginStatus.cancelled) {
+    final match = await _users
+        .where('username', isEqualTo: normalizedUsername)
+        .limit(1)
+        .get();
+
+    if (match.docs.isEmpty) {
       throw FirebaseAuthException(
-        code: 'facebook-login-cancelled',
-        message: 'Facebook login was cancelled.',
+        code: 'user-not-found',
+        message: 'Username not found.',
       );
     }
 
-    if (result.status != LoginStatus.success || result.accessToken == null) {
+    final storedEmail = match.docs.first['email'] as String;
+
+    // 가입할 때 쓴 이메일이랑 비교
+    if (storedEmail != normalizedEmail) {
       throw FirebaseAuthException(
-        code: 'facebook-login-failed',
-        message: 'Facebook login failed. Please try again.',
+        code: 'invalid-credential',
+        message: 'Email does not match our records.',
       );
     }
 
-    final credential = FacebookAuthProvider.credential(
-      result.accessToken!.tokenString,
-    );
-    final userCredential = await _auth.signInWithCredential(credential);
-    final user = userCredential.user;
-
-    if (user == null) return;
-
-    final doc = await _users.doc(user.uid).get();
-    if (doc.exists) return;
-
-    final profile = await FacebookAuth.instance.getUserData();
-    final username = (profile['name'] as String?)?.trim();
-    final email = (profile['email'] as String?)?.trim().toLowerCase() ??
-        user.email?.toLowerCase();
-
-    await _users.doc(user.uid).set({
-      'username': username?.isNotEmpty == true ? username : 'user_${user.uid.substring(0, 6)}',
-      'email': email ?? '',
-      'createdAt': FieldValue.serverTimestamp(),
-      'provider': 'facebook',
-    });
+    // 같으면 재설정 링크 발송
+    await _auth.sendPasswordResetEmail(email: storedEmail);
   }
 
+  // 오류 메시지
   static String messageFor(FirebaseAuthException e) {
     return switch (e.code) {
       'invalid-email' => 'Please enter a valid email address.',
       'invalid-credential' ||
       'user-not-found' ||
-      'wrong-password' =>
-        'Invalid username, email, or password.',
+      'wrong-password' => 'Invalid username or password.',
       'username-already-in-use' => 'This username is already taken.',
       'email-already-in-use' => 'An account with this email already exists.',
       'weak-password' => 'Password must be at least 6 characters.',
       'user-disabled' => 'This account has been disabled.',
-      'facebook-login-cancelled' => 'Facebook login was cancelled.',
-      'facebook-login-failed' => 'Facebook login failed. Please try again.',
       _ => e.message ?? 'Something went wrong. Please try again.',
     };
   }

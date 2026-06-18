@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../services/auth_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/glass_container.dart';
@@ -16,7 +17,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
-  bool _isFacebookLoading = false;
+  bool _isGuestLoading = false;
+  bool _isGoogleLoading = false;
   bool _obscurePassword = true;
   String? _errorMessage;
 
@@ -46,32 +48,180 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  Future<void> _loginWithFacebook() async {
-    setState(() { _isFacebookLoading = true; _errorMessage = null; });
+  Future<void> _loginWithGoogle() async {
+    setState(() { _isGoogleLoading = true; _errorMessage = null; });
     try {
-      await AuthService.signInWithFacebook();
-    } on FirebaseAuthException catch (e) {
-      if (!mounted) return;
-      setState(() => _errorMessage = AuthService.messageFor(e));
+      final googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) {
+        setState(() => _isGoogleLoading = false);
+        return;
+      }
+      final googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+      await FirebaseAuth.instance.signInWithCredential(credential);
     } catch (_) {
       if (!mounted) return;
-      setState(() => _errorMessage = 'Facebook login failed.');
+      setState(() => _errorMessage = 'Google login failed.');
     } finally {
-      if (mounted) setState(() => _isFacebookLoading = false);
+      if (mounted) setState(() => _isGoogleLoading = false);
     }
   }
 
-void _goToSignUp() {
-  Navigator.of(context).push(PageRouteBuilder<void>(
-    transitionDuration: const Duration(milliseconds: 400),
-    pageBuilder: (context, animation, secondaryAnimation) => const SignUpScreen(),
-    transitionsBuilder: (context, animation, secondaryAnimation, child) =>
-        FadeTransition(opacity: animation, child: child),
-  ));
-}
+  Future<void> _loginAsGuest() async {
+    setState(() { _isGuestLoading = true; _errorMessage = null; });
+    try {
+      await FirebaseAuth.instance.signInAnonymously();
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _errorMessage = 'Guest login failed.');
+    } finally {
+      if (mounted) setState(() => _isGuestLoading = false);
+    }
+  }
+
+  Future<void> _showForgotPasswordDialog() async {
+    final usernameController = TextEditingController();
+    final emailController = TextEditingController();
+    String? dialogError;
+    bool sending = false;
+    bool step2 = false;
+
+    await showDialog<void>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: const Color(0xFF141B2D),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Text(
+            step2 ? 'Verify Your Identity' : 'Forgot Password?',
+            style: const TextStyle(color: Colors.white),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                step2
+                    ? 'Enter the email address linked to your account.'
+                    : 'Enter your username to get started.',
+                style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
+              ),
+              const SizedBox(height: 16),
+              if (!step2)
+                TextField(
+                  controller: usernameController,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    labelText: 'Username',
+                    labelStyle: const TextStyle(color: AppColors.textSecondary),
+                    prefixIcon: const Icon(Icons.person_outline, color: AppColors.textSecondary),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: AppColors.accent),
+                    ),
+                  ),
+                ),
+              if (step2)
+                TextField(
+                  controller: emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    labelText: 'Email',
+                    labelStyle: const TextStyle(color: AppColors.textSecondary),
+                    prefixIcon: const Icon(Icons.email_outlined, color: AppColors.textSecondary),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: AppColors.accent),
+                    ),
+                  ),
+                ),
+              if (dialogError != null) ...[
+                const SizedBox(height: 12),
+                Text(dialogError!, style: const TextStyle(color: Colors.redAccent, fontSize: 13)),
+              ],
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: sending ? null : () => Navigator.pop(context),
+              child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
+            ),
+            TextButton(
+              onPressed: sending ? null : () async {
+                if (!step2) {
+                  final username = usernameController.text.trim();
+                  if (username.isEmpty) {
+                    setDialogState(() => dialogError = 'Enter your username.');
+                    return;
+                  }
+                  setDialogState(() { sending = true; dialogError = null; });
+                  final exists = await AuthService.usernameExists(username);
+                  if (!exists) {
+                    setDialogState(() { sending = false; dialogError = 'Username not found.'; });
+                    return;
+                  }
+                  setDialogState(() { sending = false; step2 = true; });
+                } else {
+                  final email = emailController.text.trim();
+                  if (email.isEmpty || !email.contains('@')) {
+                    setDialogState(() => dialogError = 'Enter a valid email.');
+                    return;
+                  }
+                  setDialogState(() { sending = true; dialogError = null; });
+                  try {
+                    await AuthService.sendPasswordResetWithEmailUpdate(
+                      usernameController.text.trim(),
+                      email,
+                    );
+                    if (!context.mounted) return;
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Reset link sent! Check your inbox.')),
+                    );
+                  } on FirebaseAuthException catch (e) {
+                    setDialogState(() { sending = false; dialogError = AuthService.messageFor(e); });
+                  } catch (_) {
+                    setDialogState(() { sending = false; dialogError = 'Could not send reset email.'; });
+                  }
+                }
+              },
+              child: sending
+                  ? const SizedBox(width: 18, height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.accent))
+                  : Text(step2 ? 'Send' : 'Next', style: const TextStyle(color: AppColors.accent)),
+            ),
+          ],
+        ),
+      ),
+    );
+    usernameController.dispose();
+    emailController.dispose();
+  }
+
+  void _goToSignUp() {
+    Navigator.of(context).push(PageRouteBuilder<void>(
+      transitionDuration: const Duration(milliseconds: 400),
+      pageBuilder: (context, animation, secondaryAnimation) => const SignUpScreen(),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+          FadeTransition(opacity: animation, child: child),
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
-    final busy = _isLoading || _isFacebookLoading;
+    final busy = _isLoading || _isGuestLoading || _isGoogleLoading;
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Stack(
@@ -147,27 +297,29 @@ void _goToSignUp() {
                               const SizedBox(height: 12),
                               Row(
                                 children: [
+                                  // Google 로그인 버튼
                                   Expanded(
                                     child: _SocialButton(
-                                      label: 'Email',
-                                      icon: Icons.email_outlined,
-                                      iconColor: AppColors.accent,
-                                      borderColor: AppColors.accent.withValues(alpha: 0.5),
-                                      backgroundColor: AppColors.accent.withValues(alpha: 0.12),
-                                      isLoading: _isLoading,
-                                      onPressed: busy ? null : _login,
+                                      label: 'Google',
+                                      icon: Icons.g_mobiledata,
+                                      iconColor: Colors.white,
+                                      borderColor: Colors.white24,
+                                      backgroundColor: Colors.white.withValues(alpha: 0.08),
+                                      isLoading: _isGoogleLoading,
+                                      onPressed: busy ? null : _loginWithGoogle,
                                     ),
                                   ),
                                   const SizedBox(width: 8),
+                                  // Guest 로그인 버튼
                                   Expanded(
                                     child: _SocialButton(
-                                      label: 'Facebook',
-                                      icon: Icons.facebook,
-                                      iconColor: const Color(0xFF1877F2),
-                                      borderColor: const Color(0xFF1877F2).withValues(alpha: 0.6),
-                                      backgroundColor: const Color(0xFF1877F2).withValues(alpha: 0.15),
-                                      isLoading: _isFacebookLoading,
-                                      onPressed: busy ? null : _loginWithFacebook,
+                                      label: 'Guest',
+                                      icon: Icons.person_outline,
+                                      iconColor: Colors.white54,
+                                      borderColor: Colors.white24,
+                                      backgroundColor: Colors.white.withValues(alpha: 0.05),
+                                      isLoading: _isGuestLoading,
+                                      onPressed: busy ? null : _loginAsGuest,
                                     ),
                                   ),
                                 ],
@@ -195,7 +347,7 @@ void _goToSignUp() {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   TextButton(
-                                    onPressed: busy ? null : () {},
+                                    onPressed: busy ? null : _showForgotPasswordDialog,
                                     child: const Text('Forgot password?', style: TextStyle(color: AppColors.textSecondary)),
                                   ),
                                   Container(width: 1, height: 16, color: Colors.white.withValues(alpha: 0.2)),
