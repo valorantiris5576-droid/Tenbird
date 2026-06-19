@@ -1,8 +1,9 @@
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:async';
-
 import 'package:geolocator/geolocator.dart';
 
 class RunningScreen extends StatefulWidget {
@@ -19,8 +20,11 @@ class _RunningScreenState extends State<RunningScreen> {
   double _distanceKm = 0.0;
   int _seconds = 0;
   Timer? _timer;
-  Position? _lastPosition; 
-  StreamSubscription<Position>? _positionStream; 
+  Position? _lastPosition;
+  StreamSubscription<Position>? _positionStream;
+  LatLng _currentLatLng = const LatLng(37.5665, 126.9780);
+  final MapController _mapController = MapController();
+  final List<LatLng> _routePoints = [];
 
   int get _donation => (_distanceKm * 10).floor();
 
@@ -35,13 +39,12 @@ class _RunningScreenState extends State<RunningScreen> {
   String get _time {
     final m = _seconds ~/ 60;
     final s = _seconds % 60;
-    return "${m.toString().padLeft(2,'0')}:${s.toString().padLeft(2, '0')}";
+    return "${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}";
   }
 
   Future<bool> _checkPermission() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) return false;
-
     LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
@@ -51,12 +54,10 @@ class _RunningScreenState extends State<RunningScreen> {
     return true;
   }
 
-  
-
-  Future<void> _startStop() async{
+  Future<void> _startStop() async {
     if (_isRunning) {
       _timer?.cancel();
-      _positionStream?.cancel(); 
+      _positionStream?.cancel();
       setState(() => _isRunning = false);
       _saveRun();
     } else {
@@ -69,18 +70,23 @@ class _RunningScreenState extends State<RunningScreen> {
         }
         return;
       }
-      setState(() => _isRunning = true);
+      setState(() {
+        _isRunning = true;
+        _routePoints.clear();
+      });
       _lastPosition = null;
 
       _timer = Timer.periodic(const Duration(seconds: 1), (t) {
         setState(() => _seconds++);
       });
+
       _positionStream = Geolocator.getPositionStream(
         locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.high,
           distanceFilter: 5,
         ),
-      ). listen((Position pos) {
+      ).listen((Position pos) {
+        final newLatLng = LatLng(pos.latitude, pos.longitude);
         if (_lastPosition != null) {
           final dist = Geolocator.distanceBetween(
             _lastPosition!.latitude,
@@ -88,7 +94,18 @@ class _RunningScreenState extends State<RunningScreen> {
             pos.latitude,
             pos.longitude,
           );
-          setState(() => _distanceKm += dist / 1000);
+          setState(() {
+            _distanceKm += dist / 1000;
+            _currentLatLng = newLatLng;
+            _routePoints.add(newLatLng);
+          });
+          _mapController.move(newLatLng, 15);
+        } else {
+          setState(() {
+            _currentLatLng = newLatLng;
+            _routePoints.add(newLatLng);
+          });
+          _mapController.move(newLatLng, 15);
         }
         _lastPosition = pos;
       });
@@ -99,8 +116,8 @@ class _RunningScreenState extends State<RunningScreen> {
     final user = _auth.currentUser;
     if (user == null || _distanceKm < 0.01) return;
 
-    final donation=_donation;
-    final batch= _db.batch();
+    final donation = _donation;
+    final batch = _db.batch();
 
     final userRef = _db.collection('users').doc(user.uid);
     batch.set(userRef, {
@@ -113,17 +130,12 @@ class _RunningScreenState extends State<RunningScreen> {
       'totalDonation': FieldValue.increment(donation),
     }, SetOptions(merge: true));
 
-    final runRef = _db
-        .collection('users')
-        .doc(user.uid)
-        .collection('runs')
-        .doc();
-  
+    final runRef = _db.collection('users').doc(user.uid).collection('runs').doc();
     batch.set(runRef, {
       'distanceKm': _distanceKm,
-      'seconds': _seconds, 
+      'seconds': _seconds,
       'donation': donation,
-      'createdAt': FieldValue.serverTimestamp()
+      'createdAt': FieldValue.serverTimestamp(),
     });
 
     await batch.commit();
@@ -131,6 +143,7 @@ class _RunningScreenState extends State<RunningScreen> {
     setState(() {
       _distanceKm = 0.0;
       _seconds = 0;
+      _routePoints.clear();
     });
   }
 
@@ -138,10 +151,11 @@ class _RunningScreenState extends State<RunningScreen> {
   void dispose() {
     _timer?.cancel();
     _positionStream?.cancel();
+    _mapController.dispose();
     super.dispose();
   }
 
-    @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0A0E1A),
@@ -154,39 +168,18 @@ class _RunningScreenState extends State<RunningScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    '러닝',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  const Text('러닝', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 2),
                   Text(
                     _isRunning ? 'Running...' : 'Monday Morning Run',
-                    style: const TextStyle(
-                      color: Color(0xB3FFFFFF),
-                      fontSize: 13,
-                    ),
+                    style: const TextStyle(color: Color(0xB3FFFFFF), fontSize: 13),
                   ),
                   const SizedBox(height: 12),
                   Text(
                     _distanceKm.toStringAsFixed(2),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 52,
-                      fontWeight: FontWeight.bold,
-                      height: 1,
-                    ),
+                    style: const TextStyle(color: Colors.white, fontSize: 52, fontWeight: FontWeight.bold, height: 1),
                   ),
-                  const Text(
-                    'km',
-                    style: TextStyle(
-                      color: Color(0xB3FFFFFF),
-                      fontSize: 14,
-                    ),
-                  ),
+                  const Text('km', style: TextStyle(color: Color(0xB3FFFFFF), fontSize: 14)),
                   const SizedBox(height: 16),
                   Row(
                     children: [
@@ -194,26 +187,52 @@ class _RunningScreenState extends State<RunningScreen> {
                       const SizedBox(width: 8),
                       _StatBox(label: '시간', value: _time),
                       const SizedBox(width: 8),
-                      _StatBox(
-                        label: '기부금',
-                        value: '₩$_donation',
-                        valueColor: const Color(0xFF00C896),
-                      ),
+                      _StatBox(label: '기부금', value: '₩$_donation', valueColor: const Color(0xFF00C896)),
                     ],
                   ),
                 ],
               ),
             ),
-
             Expanded(
               child: Stack(
                 children: [
-                  Container(
-                    color: const Color(0xFF141824),
-                    child: CustomPaint(
-                      painter: _MapPainter(),
-                      child: const SizedBox.expand(),
+                  FlutterMap(
+                    mapController: _mapController,
+                    options: MapOptions(
+                      initialCenter: _currentLatLng,
+                      initialZoom: 15,
                     ),
+                    children: [
+                      TileLayer(
+                        urlTemplate: 'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}.png',
+                        userAgentPackageName: 'com.example.run_donate',
+                      ),
+                      if (_routePoints.length > 1)
+                        PolylineLayer(
+                          polylines: [
+                            Polyline(
+                              points: _routePoints,
+                              strokeWidth: 4,
+                              color: const Color(0xFF00C896),
+                            ),
+                          ],
+                        ),
+                      MarkerLayer(
+                        markers: [
+                          Marker(
+                            point: _currentLatLng,
+                            width: 20,
+                            height: 20,
+                            child: Container(
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF00C896),
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                   Positioned(
                     bottom: 24,
@@ -230,15 +249,9 @@ class _RunningScreenState extends State<RunningScreen> {
                               decoration: BoxDecoration(
                                 color: const Color(0xFF141824),
                                 shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: const Color(0xFF1E2535),
-                                ),
+                                border: Border.all(color: const Color(0xFF1E2535)),
                               ),
-                              child: const Icon(
-                                Icons.settings,
-                                color: Color(0xFF8899AA),
-                                size: 20,
-                              ),
+                              child: const Icon(Icons.settings, color: Color(0xFF8899AA), size: 20),
                             ),
                             GestureDetector(
                               onTap: _startStop,
@@ -262,26 +275,14 @@ class _RunningScreenState extends State<RunningScreen> {
                               decoration: BoxDecoration(
                                 color: const Color(0xFF141824),
                                 shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: const Color(0xFF1E2535),
-                                ),
+                                border: Border.all(color: const Color(0xFF1E2535)),
                               ),
-                              child: const Icon(
-                                Icons.music_note,
-                                color: Color(0xFF8899AA),
-                                size: 20,
-                              ),
+                              child: const Icon(Icons.music_note, color: Color(0xFF8899AA), size: 20),
                             ),
                           ],
                         ),
                         const SizedBox(height: 12),
-                        const Text(
-                          '목표 설정',
-                          style: TextStyle(
-                            color: Color(0xFF8899AA),
-                            fontSize: 12,
-                          ),
-                        ),
+                        const Text('목표 설정', style: TextStyle(color: Color(0xFF8899AA), fontSize: 12)),
                       ],
                     ),
                   ),
@@ -291,12 +292,12 @@ class _RunningScreenState extends State<RunningScreen> {
           ],
         ),
       ),
-    );      
+    );
   }
 }
 
 class _StatBox extends StatelessWidget {
-  const _StatBox ({required this.label, required this.value, this.valueColor = Colors.white});
+  const _StatBox({required this.label, required this.value, this.valueColor = Colors.white});
   final String label;
   final String value;
   final Color valueColor;
@@ -313,7 +314,7 @@ class _StatBox extends StatelessWidget {
         ),
         child: Column(
           children: [
-            Text(label,style: const TextStyle(color: Color(0xFF8899AA), fontSize: 10)),
+            Text(label, style: const TextStyle(color: Color(0xFF8899AA), fontSize: 10)),
             const SizedBox(height: 4),
             Text(value, style: TextStyle(color: valueColor, fontSize: 14, fontWeight: FontWeight.bold)),
           ],
@@ -321,52 +322,4 @@ class _StatBox extends StatelessWidget {
       ),
     );
   }
-}
-
-class _MapPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final gridPaint = Paint()
-    ..color = const Color(0xFF1E2535)
-    ..strokeWidth = 0.5;
-    for (double y = 0; y < size.height; y += 44) {
-      canvas.drawLine(Offset(0,y), Offset(size.width, y), gridPaint);
-    }
-    for (double x = 0; x < size.width; x += 44) {
-      canvas.drawLine(Offset(x,0), Offset(x, size.height), gridPaint);
-    }
-    final blockPaint = Paint() ..color = const Color(0xFF1A2235);
-    canvas.drawRect(Rect.fromLTWH(10, 20, 60, 30), blockPaint);
-    canvas.drawRect(Rect.fromLTWH(80, 40, 50, 40), blockPaint);
-    canvas.drawRect(Rect.fromLTWH(140, 25, 70, 28), blockPaint);
-    canvas.drawRect(Rect.fromLTWH(20, 100, 80, 22), blockPaint);
-    canvas.drawRect(Rect.fromLTWH(110, 90, 60, 35), blockPaint);
-    canvas.drawRect(Rect.fromLTWH(10, 160, 45, 50), blockPaint);
-    canvas.drawRect(Rect.fromLTWH(65, 150, 90, 32), blockPaint);
-    canvas.drawRect(Rect.fromLTWH(160, 140, 55, 55), blockPaint);
-    final routePaint = Paint()
-    ..color = const Color(0xFF00C896)
-    ..strokeWidth = 2.5
-    ..strokeCap = StrokeCap.round
-    ..style = PaintingStyle.stroke;
-    final path = Path()
-      ..moveTo(20, size.height * 0.75)
-      ..lineTo(55, size.height * 0.55)
-      ..lineTo(90, size.height * 0.65)
-      ..lineTo(125, size.height * 0.35)
-      ..lineTo(160, size.height * 0.45)
-      ..lineTo(200, size.height * 0.25);
-    canvas.drawPath(path, routePaint);
-    canvas.drawCircle(
-      Offset(20, size.height * 0.75), 5,
-      Paint()..color = const Color(0xFF1D9E75),
-    );
-    canvas.drawCircle(
-      Offset(200, size.height * 0.25), 6,
-      Paint()..color = const Color(0xFF00C896),
-    );
-  }
-  
-  @override
-  bool shouldRepaint(_MapPainter oldDelegate) => false;
 }
