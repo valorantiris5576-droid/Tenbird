@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'screens/splash_screen.dart';
-import 'screens/home_screen.dart';
+import 'screens/main_screen.dart';
 import 'screens/login_screen.dart';
 
 void main() async {
@@ -31,7 +31,6 @@ class StepGiveApp extends StatelessWidget {
   }
 }
 
-// 로그인 상태에 따라 홈 또는 로그인 화면 보여주기
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
 
@@ -40,9 +39,15 @@ class AuthWrapper extends StatelessWidget {
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
-        // 로그인 됐으면 홈 화면
-        if (snapshot.hasData) return const HomeScreen();
-        // 로그인 안 됐으면 로그인 화면
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            backgroundColor: Color(0xFF0A0E1A),
+            body: Center(
+              child: CircularProgressIndicator(color: Color(0xFF00C896)),
+            ),
+          );
+        }
+        if (snapshot.hasData) return MainScreen();
         return const LoginScreen();
       },
     );

@@ -17,18 +17,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
     await _auth.signOut();
   }
 
-  @override 
+  @override
   Widget build(BuildContext context) {
     final user = _auth.currentUser;
     final isGuest = user?.isAnonymous ?? false;
     final uid = user?.uid;
-  
 
-  return Scaffold(
-    backgroundColor: const Color(0xFF0A0E1A),
-    body: SafeArea(
-      child: Stack(
-        children: [
+    return Scaffold(
+      backgroundColor: const Color(0xFF0A0E1A),
+      body: SafeArea(
+        child: Stack(
+          children: [
             SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               child: Column(
@@ -37,21 +36,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        '프로필',
-                        style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      const Text('프로필', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
                       GestureDetector(
                         onTap: () => setState(() => _menuOpen = !_menuOpen),
                         child: _menuOpen
                             ? const Icon(Icons.close, color: Colors.white, size: 22)
                             : Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
                                   Container(width: 18, height: 2, color: Colors.white, margin: const EdgeInsets.symmetric(vertical: 2)),
                                   Container(width: 18, height: 2, color: Colors.white, margin: const EdgeInsets.symmetric(vertical: 2)),
                                   Container(width: 18, height: 2, color: Colors.white, margin: const EdgeInsets.symmetric(vertical: 2)),
@@ -61,7 +53,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ],
                   ),
                   const SizedBox(height: 20),
-
                   Center(
                     child: Column(
                       children: [
@@ -78,38 +69,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         const SizedBox(height: 10),
                         Text(
                           isGuest ? '게스트' : (user?.displayName ?? '러너'),
-                          style: const TextStyle(
-                            color: Colors.White,
-                            fontSize : 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 4),
                         StreamBuilder<DocumentSnapshot>(
                           stream: _db.collection('users').doc(uid).snapshots(),
                           builder: (context, snapshot) {
-                            final createdAt = snapeshot.data?.get('createdAt') as Timestamp?;
+                            final data = snapshot.data?.data() as Map?;
+                            final createdAt = data?['createdAt'] as Timestamp?;
                             final dateStr = createdAt != null
-                                ? '가입일' ${createdAt.toDate().year}.${createdAt.toDate().month.toString().padLeft(2,'0')}.${createdAt.toDate().day.toString().padLeft(2,'0')}'
+                                ? '가입일 ${createdAt.toDate().year}.${createdAt.toDate().month.toString().padLeft(2, '0')}.${createdAt.toDate().day.toString().padLeft(2, '0')}'
                                 : '가입일 -';
-                            return Text(
-                              dateStr,
-                              style: const TextStyle(Color(0xB3FFFFFF), fontSize: 12),
-                            );
+                            return Text(dateStr, style: const TextStyle(color: Color(0xB3FFFFFF), fontSize: 12));
                           },
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 20),
-
                   StreamBuilder<DocumentSnapshot>(
                     stream: _db.collection('users').doc(uid).snapshots(),
                     builder: (context, snapshot) {
-                      final totalDon = snapshot.data?.get('totalDonation') ?? 0;
-                      final totalKm = (snapshot.data?.get('totalKm') ?? 0.0);
+                      final data = snapshot.data?.data() as Map?;
+                      final totalDon = data?['totalDonation'] ?? 0;
+                      final totalKm = data?['totalKm'] ?? 0.0;
                       final km = totalKm is double ? totalKm : (totalKm as num).toDouble();
-
                       return Column(
                         children: [
                           Row(
@@ -117,16 +101,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               Expanded(
                                 child: Container(
                                   padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF141824),
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: const Color(0xFF1E2535)),
-                                  ),
+                                  decoration: BoxDecoration(color: const Color(0xFF141824), borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFF1E2535))),
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      const Text('총 기부금',style:  TextStyle(color: Color(0xFF8899AA),fontSize: 11)),
-                                      const  SizedBox(height: 4),
+                                      const Text('총 기부금', style: TextStyle(color: Color(0xFF8899AA), fontSize: 11)),
+                                      const SizedBox(height: 4),
                                       Text('₩$totalDon', style: const TextStyle(color: Color(0xFF00C896), fontSize: 18, fontWeight: FontWeight.bold)),
                                     ],
                                   ),
@@ -136,17 +116,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               Expanded(
                                 child: Container(
                                   padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF141824),
-                                    borderRadius: BorderRadius.circular(12),
-                                    border:Border.all(color: const Color(0xFF1E2535)),
-                                  ),
+                                  decoration: BoxDecoration(color: const Color(0xFF141824), borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFF1E2535))),
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                    const Text('총 거리', style: TextStyle(color: Color(0xFF8899AA), fontSize: 11)),
-                                    const SizedBox(height: 4),
-                                    Text('${km.toStringAsFixed(1)} km', style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                                      const Text('총 거리', style: TextStyle(color: Color(0xFF8899AA), fontSize: 11)),
+                                      const SizedBox(height: 4),
+                                      Text('${km.toStringAsFixed(1)} km', style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                                     ],
                                   ),
                                 ),
@@ -154,21 +130,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ],
                           ),
                           const SizedBox(height: 10),
-
                           Container(
                             width: double.infinity,
                             padding: const EdgeInsets.all(16),
-                            decoration : BoxDecoration(
-                              color: const Color(0xFF141824),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: const Color(0xFF1E2535)),
-                            ),
+                            decoration: BoxDecoration(color: const Color(0xFF141824), borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFF1E2535))),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text('오늘의 요약', style: TextStyle(color: Color(0xFF8899AA), fontSize: 11))
-                                const SizedBox(height: 4),
-                                Text('₩$totalDon', style: const TextStyle(color: Color(0xFF00C896), fontSize: 16, fontWeight: FontWeight.w500)),
+                                const Text('오늘의 요약', style: TextStyle(color: Color(0xFF8899AA), fontSize: 11)),
+                                const SizedBox(height: 10),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          const Text('오늘 거리', style: TextStyle(color: Color(0xFF8899AA), fontSize: 11)),
+                                          const SizedBox(height: 4),
+                                          Text('${km.toStringAsFixed(1)} km', style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500)),
+                                        ],
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          const Text('오늘 기부', style: TextStyle(color: Color(0xFF8899AA), fontSize: 11)),
+                                          const SizedBox(height: 4),
+                                          Text('₩$totalDon', style: const TextStyle(color: Color(0xFF00C896), fontSize: 16, fontWeight: FontWeight.w500)),
                                         ],
                                       ),
                                     ),
@@ -178,32 +167,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                           ),
                           const SizedBox(height: 10),
-
                           Container(
                             width: double.infinity,
                             padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF141824),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: const Color(0xFF1E2535)),
-                            ),
+                            decoration: BoxDecoration(color: const Color(0xFF141824), borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFF1E2535))),
                             child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start, 
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    const Text('이번 주 목표', style: TextStyle(color: Color(0xFF8899AA),fontSoze: 11)),
-                                    Text('${km.toStringAsFixed(1)} / 10k', style: const TextStyle(color: Color(0xFF00C896), fontSize: 11)),
+                                    const Text('이번 주 목표', style: TextStyle(color: Color(0xFF8899AA), fontSize: 11)),
+                                    Text('${km.toStringAsFixed(1)} / 10 km', style: const TextStyle(color: Color(0xFF00C896), fontSize: 11)),
                                   ],
                                 ),
                                 const SizedBox(height: 8),
-                                ClipRRect (
-                                borderRadius: BorderRadius.circular(4),
-                                child: LinearProgressIndicator(
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(4),
+                                  child: LinearProgressIndicator(
                                     value: (km / 10).clamp(0.0, 1.0),
                                     backgroundColor: const Color(0xFF1E2535),
-                                    ValueColor: AlwaysStoppedAnimation<Color>(Color(0xFF00C896)),
+                                    valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF00C896)),
                                     minHeight: 5,
                                   ),
                                 ),
@@ -212,28 +196,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ],
                       );
-                    ],
+                    },
                   ),
                   const SizedBox(height: 16),
-
                   const Text('최근 러닝', style: TextStyle(color: Color(0xB3FFFFFF), fontSize: 13)),
                   const SizedBox(height: 8),
-
                   StreamBuilder<QuerySnapshot>(
-                    stream: _db
-                        .collection('users')
-                        .doc(uid)
-                        .collection('runs')
-                        .orderBy('createdAt', descending: true)
-                        .limit(5)
-                        .snapshots(),
+                    stream: _db.collection('users').doc(uid).collection('runs').orderBy('createdAt', descending: true).limit(5).snapshots(),
                     builder: (context, snapshot) {
                       if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                        return const Text ('아직 러닝 기록이 없어요', style: TextStyle(color: Color(0xFF8899AA)));
+                        return const Text('아직 러닝 기록이 없어요', style: TextStyle(color: Color(0xFF8899AA)));
                       }
                       return Column(
-                        children: snapshot.data!.docs.map((docs) {
-                          final km = (docs['distanceKm'] as num).todDouble();
+                        children: snapshot.data!.docs.map((doc) {
+                          final km = (doc['distanceKm'] as num).toDouble();
                           final don = doc['donation'] as int;
                           final ts = doc['createdAt'] as Timestamp?;
                           final date = ts != null ? '${ts.toDate().month}.${ts.toDate().day.toString().padLeft(2, '0')}' : '--';
@@ -241,15 +217,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             margin: const EdgeInsets.only(bottom: 8),
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                             decoration: BoxDecoration(
-                              color : const Color(0xFF111827),
+                              color: const Color(0xFF111827),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.white.withValues(alphaL 0.06)),
+                              border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(date, style: const Textstyle(color: Color(0xFF8899AA),fontsize: 12)),
-                                Text'${km.toStringAsFixed(1)} km', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
+                                Text(date, style: const TextStyle(color: Color(0xFF8899AA), fontSize: 12)),
+                                Text('${km.toStringAsFixed(1)} km', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
                                 Text('₩$don', style: const TextStyle(color: Color(0xFF00C896), fontWeight: FontWeight.w500)),
                               ],
                             ),
@@ -262,20 +238,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
             ),
-          
             if (_menuOpen)
               Container(
                 color: const Color(0xFF0A0E1A),
                 child: SafeArea(
                   child: Column(
-                    crossAxisAlignment: CrossAxilAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical : 16),
-                        child : Row(  
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                        child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('설정', style: TextStyle(color: Colors.white, fontSize:22, fontWeight: FontWeight.bold)),
+                            const Text('설정', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
                             GestureDetector(
                               onTap: () => setState(() => _menuOpen = false),
                               child: const Icon(Icons.close, color: Colors.white, size: 22),
@@ -283,7 +258,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ],
                         ),
                       ),
-                       _MenuItem(icon: Icons.lock_outline, title: '보안', subtitle: '비밀번호 · 2단계 인증'),
+                      _MenuItem(icon: Icons.lock_outline, title: '보안', subtitle: '비밀번호 · 2단계 인증'),
                       _MenuItem(icon: Icons.person_add_outlined, title: '친구 추가', subtitle: '함께 달릴 친구 찾기'),
                       _MenuItem(icon: Icons.location_on_outlined, title: '동네 변경', subtitle: '내 활동 지역 설정'),
                       _MenuItem(icon: Icons.help_outline, title: '도움말', subtitle: '자주 묻는 질문'),
@@ -317,11 +292,7 @@ class _MenuItem extends StatelessWidget {
       leading: Container(
         width: 36,
         height: 36,
-        decoration: BoxDecoration(
-          color: const Color(0xFF141824),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0xFF1E2535)),
-        ),
+        decoration: BoxDecoration(color: const Color(0xFF141824), borderRadius: BorderRadius.circular(8), border: Border.all(color: const Color(0xFF1E2535))),
         child: Icon(icon, color: const Color(0xFF00C896), size: 18),
       ),
       title: Text(title, style: const TextStyle(color: Colors.white, fontSize: 14)),

@@ -47,7 +47,7 @@ class GlassContainer extends StatelessWidget {
           ),
           child: child,
         ),
-      ),
+      ), 
     );
   }
 }

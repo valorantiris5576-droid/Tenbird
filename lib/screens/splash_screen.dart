@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 
 import '../theme/app_colors.dart';
-import 'login_screen.dart';
+
+
+import '../main.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -48,7 +50,7 @@ class _SplashScreenState extends State<SplashScreen>
     Navigator.of(context).pushReplacement(
       PageRouteBuilder<void>(
         transitionDuration: const Duration(milliseconds: 1050),
-        pageBuilder: (context, animation, secondaryAnimation) => const LoginScreen(),
+        pageBuilder: (context, animation, secondaryAnimation) => const AuthWrapper(),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(opacity: animation, child: child);
         },
@@ -59,7 +61,7 @@ class _SplashScreenState extends State<SplashScreen>
   void _skipToLogin() {
     _controller.stop();
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => const LoginScreen()),
+      MaterialPageRoute(builder: (context) => const AuthWrapper()),
     );
   }
 
