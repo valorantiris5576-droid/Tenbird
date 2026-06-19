@@ -26,7 +26,8 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0E1A),
+      // 웹 화면에서 양쪽 여백이 더 자연스러워 보이도록 배경색 수정
+      backgroundColor: const Color(0xFF050810),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 400),

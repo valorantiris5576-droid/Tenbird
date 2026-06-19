@@ -19,8 +19,8 @@ class _RunningScreenState extends State<RunningScreen> {
   double _distanceKm = 0.0;
   int _seconds = 0;
   Timer? _timer;
-  Position? _lastPosition; //gps 위치 저장 
-  StreamSubscription<Position>? _positionStream; //gps cloud
+  Position? _lastPosition; 
+  StreamSubscription<Position>? _positionStream; 
 
   int get _donation => (_distanceKm * 10).floor();
 

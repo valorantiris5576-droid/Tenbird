@@ -77,7 +77,7 @@ class DonationScreen extends StatelessWidget {
                 style: TextStyle(color: Color(0xB3FFFFFF), fontSize: 13),
               ),
               const SizedBox(height: 12),
-              const _WeeklyChart(),
+              _WeeklyChart(uid: uid),
               const SizedBox(height: 20),
               const Text(
                 '최근 기록',
@@ -143,57 +143,82 @@ class DonationScreen extends StatelessWidget {
 }
 
 class _WeeklyChart extends StatelessWidget {
-  const _WeeklyChart();
+  const _WeeklyChart({required this.uid});
+  final String? uid;
 
   @override
   Widget build(BuildContext context) {
-    final days = ['월','화','수','목','금','토','일'];
-    final heights = [0.3, 0.5, 0.4, 0.8, 0.6, 0.45, 0.2];
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .collection('runs')
+          .orderBy('createdAt', descending: true)
+          .limit(7)
+          .snapshots(),
+      builder: (context, snapshot) {
+        final days = ['월', '화', '수', '목', '금', '토', '일'];
+        final heights = List<double>.filled(7, 0.1);
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF111827),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.06))
-      ),
-      child: Column(
-        children: [
-          SizedBox(
-            height: 80,
-            child : Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: List.generate(7, (i) {
-                final isToday = i == 3;
-                return Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 3),
-                    child: Container(
-                      height: 80 * heights[i],
-                      decoration: BoxDecoration(
-                        color: isToday
-                            ? const Color(0xFF00C896)
-                            : const Color(0xFF00C896).withValues(alpha: 0.3),
-                        borderRadius: BorderRadius.circular(4),
+        if (snapshot.hasData) {
+          for (final doc in snapshot.data!.docs) {
+            final ts = doc['createdAt'] as Timestamp?;
+            if (ts != null) {
+              final weekday = ts.toDate().weekday - 1;
+              final km = (doc['distanceKm'] as num).toDouble();
+              if (weekday >= 0 && weekday < 7) {
+                heights[weekday] = (km / 10).clamp(0.1, 1.0);
+              }
+            }
+          }
+        }
+
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFF111827),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+          ),
+          child: Column(
+            children: [
+              SizedBox(
+                height: 80,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: List.generate(7, (i) {
+                    final isToday = i == DateTime.now().weekday - 1;
+                    return Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 3),
+                        child: Container(
+                          height: 80 * heights[i],
+                          decoration: BoxDecoration(
+                            color: isToday
+                                ? const Color(0xFF00C896)
+                                : const Color(0xFF00C896).withValues(alpha: 0.3),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                );
-              }),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: days.map((d) => Expanded(
-              child: Text(
-                d,
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Color(0xFF8899AA), fontSize: 11),
+                    );
+                  }),
+                ),
               ),
-            )).toList(),
+              const SizedBox(height: 8),
+              Row(
+                children: days.map((d) => Expanded(
+                  child: Text(
+                    d,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Color(0xFF8899AA), fontSize: 11),
+                  ),
+                )).toList(),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
