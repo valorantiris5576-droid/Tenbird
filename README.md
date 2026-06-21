@@ -1,17 +1,23 @@
-# run_donate
+# StepGive app
 
-A new Flutter project.
+## About 
+The purpose of StepGive application is to make users feel enjoyable in running and helps users build a consistent donate habit.
 
-## Getting Started
+## Features
+- Distance of users running measurement with GPS
+- Automatically calculate donations based on distance user's running record
+- Check user's running path on the map
+- User's own donation chart and total donation status Graph
+- Running Challenges that gives users more fun
+- Show weather and current time
+- Many login ways(Guest & Google & Id/Pw)
 
-This project is a starting point for a Flutter application.
+## Technologies Used
+- Flutter / Dart
+- Firebase Auth
+- Cloud Firestore
+- Geolocator (for GPS)
+- OpenStreetMap (for map)
+- OpenWeatherMap API (for weather)
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+  
