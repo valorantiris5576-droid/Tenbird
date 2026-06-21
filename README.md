@@ -20,4 +20,7 @@ The purpose of StepGive application is to make users feel enjoyable in running a
 - OpenStreetMap (for map)
 - OpenWeatherMap API (for weather)
 
+## Developer
+- Tenbird
+
   
