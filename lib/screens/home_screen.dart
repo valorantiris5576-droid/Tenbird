@@ -1,13 +1,19 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import '../widgets/glass_container.dart';
 import '../services/weather_service.dart';
+import 'main_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key, required this.onGoToRunning, required this.onGoToChallenge});
+  const HomeScreen({
+    super.key,
+    required this.onGoToRunning,
+    required this.onGoToChallenge,
+  });
   final VoidCallback onGoToRunning;
   final VoidCallback onGoToChallenge;
 
@@ -26,6 +32,16 @@ class _HomeScreenState extends State<HomeScreen> {
   Timer? _timer;
   String _temp = "로딩 중...";
   String _weatherDescription = "";
+  late final String _randomQuote;
+
+  final List<String> _quotes = [
+    '1km를 달릴 때마다 10원이 기부됩니다',
+    '오늘도 한 걸음, 세상도 한 걸음',
+    '달리는 만큼 세상이 바뀝니다',
+    '당신의 땀이 누군가의 희망이 됩니다',
+    '작은 발걸음이 큰 변화를 만듭니다',
+    '함께 달리면 더 멀리 갈 수 있어요',
+  ];
 
   Future<void> _signOut() async {
     await _auth.signOut();
@@ -34,8 +50,12 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    _randomQuote = _quotes[Random().nextInt(_quotes.length)];
     _updateTime();
-    _timer = Timer.periodic(const Duration(seconds: 1), (Timer t) => _updateTime());
+    _timer = Timer.periodic(
+      const Duration(seconds: 1),
+      (Timer t) => _updateTime(),
+    );
     _fetchWeatherData(37.5665, 126.9780);
   }
 
@@ -103,12 +123,19 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Text(
                         isGuest ? '게스트' : (user?.displayName ?? ''),
-                        style: const TextStyle(color: Color(0xB3FFFFFF), fontSize: 14),
+                        style: const TextStyle(
+                          color: Color(0xB3FFFFFF),
+                          fontSize: 14,
+                        ),
                       ),
                       const SizedBox(width: 8),
                       IconButton(
                         onPressed: _signOut,
-                        icon: const Icon(Icons.logout, color: Color(0xFF8899AA), size: 20),
+                        icon: const Icon(
+                          Icons.logout,
+                          color: Color(0xFF8899AA),
+                          size: 20,
+                        ),
                       ),
                     ],
                   ),
@@ -126,8 +153,21 @@ class _HomeScreenState extends State<HomeScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(_timeString, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white)),
-                          Text(_dateString, style: const TextStyle(fontSize: 14, color: Colors.white70)),
+                          Text(
+                            _timeString,
+                            style: const TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          Text(
+                            _dateString,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.white70,
+                            ),
+                          ),
                         ],
                       ),
                       Column(
@@ -136,12 +176,29 @@ class _HomeScreenState extends State<HomeScreen> {
                         children: [
                           Row(
                             children: [
-                              const Icon(Icons.wb_sunny, color: Colors.orange, size: 28),
+                              const Icon(
+                                Icons.wb_sunny,
+                                color: Colors.orange,
+                                size: 28,
+                              ),
                               const SizedBox(width: 8),
-                              Text(_temp, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
+                              Text(
+                                _temp,
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
                             ],
                           ),
-                          Text(_weatherDescription, style: const TextStyle(fontSize: 14, color: Colors.white70)),
+                          Text(
+                            _weatherDescription,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.white70,
+                            ),
+                          ),
                         ],
                       ),
                     ],
@@ -155,7 +212,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 builder: (context, snapshot) {
                   final data = snapshot.data?.data() as Map?;
                   final total = data?['totalDonation'] ?? 0;
-                  final totalKm = ((data?['totalDonation'] ?? 0) / 10).toStringAsFixed(0);
+                  final totalKm = ((data?['totalDonation'] ?? 0) / 10)
+                      .toStringAsFixed(0);
                   return Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(28),
@@ -167,11 +225,31 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('전체 기부 누적', style: TextStyle(color: Color(0xB3FFFFFF), fontSize: 13, letterSpacing: 0.5)),
+                        const Text(
+                          '전체 기부 누적',
+                          style: TextStyle(
+                            color: Color(0xB3FFFFFF),
+                            fontSize: 13,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
                         const SizedBox(height: 10),
-                        Text('₩ $total', style: const TextStyle(color: Color(0xFF00C896), fontSize: 40, fontWeight: FontWeight.bold)),
+                        Text(
+                          '₩ $total',
+                          style: const TextStyle(
+                            color: Color(0xFF00C896),
+                            fontSize: 40,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                         const SizedBox(height: 6),
-                        Text('함께 달린 거리 ${totalKm}km', style: const TextStyle(color: Color(0xB3FFFFFF), fontSize: 12)),
+                        Text(
+                          '함께 달린 거리 ${totalKm}km',
+                          style: const TextStyle(
+                            color: Color(0xB3FFFFFF),
+                            fontSize: 12,
+                          ),
+                        ),
                       ],
                     ),
                   );
@@ -197,11 +275,30 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('내 기부금', style: TextStyle(color: Color(0xB3FFFFFF), fontSize: 13)),
+                        const Text(
+                          '내 기부금',
+                          style: TextStyle(
+                            color: Color(0xB3FFFFFF),
+                            fontSize: 13,
+                          ),
+                        ),
                         const SizedBox(height: 8),
-                        Text('₩ $myDon', style: const TextStyle(color: Color(0xFF00C896), fontSize: 28, fontWeight: FontWeight.bold)),
+                        Text(
+                          '₩ $myDon',
+                          style: const TextStyle(
+                            color: Color(0xFF00C896),
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                         const SizedBox(height: 4),
-                        Text('총 ${km.toStringAsFixed(1)}km 달림', style: const TextStyle(color: Color(0xB3FFFFFF), fontSize: 12)),
+                        Text(
+                          '총 ${km.toStringAsFixed(1)}km 달림',
+                          style: const TextStyle(
+                            color: Color(0xB3FFFFFF),
+                            fontSize: 12,
+                          ),
+                        ),
                       ],
                     ),
                   );
@@ -211,14 +308,24 @@ class _HomeScreenState extends State<HomeScreen> {
 
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 14,
+                  horizontal: 20,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFF111827),
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(color: const Color(0x10FFFFFF)),
                 ),
-                child: const Center(
-                  child: Text('1km를 달릴 때마다  10원이 기부됩니다', style: TextStyle(color: Color(0xB3FFFFFF), fontSize: 13)),
+                child: Center(
+                  child: Text(
+                    _randomQuote,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Color(0xB3FFFFFF),
+                      fontSize: 13,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
@@ -231,7 +338,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   decoration: BoxDecoration(
                     color: const Color(0xFF111827),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFF00C896).withValues(alpha: 0.4)),
+                    border: Border.all(
+                      color: const Color(0xFF00C896).withValues(alpha: 0.4),
+                    ),
                   ),
                   child: const Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -239,14 +348,38 @@ class _HomeScreenState extends State<HomeScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('🏆 챌린지', style: TextStyle(color: Color(0xFF00C896), fontSize: 12, fontWeight: FontWeight.w500)),
+                          Text(
+                            '🏆 챌린지',
+                            style: TextStyle(
+                              color: Color(0xFF00C896),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                           SizedBox(height: 4),
-                          Text('여름을 시원하게 날려줄 챌린지', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                          Text(
+                            '여름을 시원하게 날려줄 챌린지',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                           SizedBox(height: 2),
-                          Text('달성하면 기부금 보너스!', style: TextStyle(color: Color(0xB3FFFFFF), fontSize: 12)),
+                          Text(
+                            '달성하면 기부금 보너스!',
+                            style: TextStyle(
+                              color: Color(0xB3FFFFFF),
+                              fontSize: 12,
+                            ),
+                          ),
                         ],
                       ),
-                      Icon(Icons.arrow_forward_ios, color: Color(0xFF00C896), size: 16),
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        color: Color(0xFF00C896),
+                        size: 16,
+                      ),
                     ],
                   ),
                 ),
@@ -261,10 +394,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     backgroundColor: const Color(0xFF00C896),
                     foregroundColor: const Color(0xFF0A0E1A),
                     padding: const EdgeInsets.symmetric(vertical: 18),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                     elevation: 0,
                   ),
-                  child: const Text('지금 달리러 가기', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  child: const Text(
+                    '지금 달리러 가기',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
               const SizedBox(height: 80),

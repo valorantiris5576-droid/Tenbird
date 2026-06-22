@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:geolocator/geolocator.dart';
 
 class RunningScreen extends StatefulWidget {
-  RunningScreen({super.key});
+  const RunningScreen({super.key});
   @override
   State<RunningScreen> createState() => _RunningScreenState();
 }
@@ -64,9 +64,9 @@ class _RunningScreenState extends State<RunningScreen> {
       final ok = await _checkPermission();
       if (!ok) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('위치 권한이 필요해요!')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('위치 권한이 필요해요!')));
         }
         return;
       }
@@ -80,35 +80,36 @@ class _RunningScreenState extends State<RunningScreen> {
         setState(() => _seconds++);
       });
 
-      _positionStream = Geolocator.getPositionStream(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-          distanceFilter: 5,
-        ),
-      ).listen((Position pos) {
-        final newLatLng = LatLng(pos.latitude, pos.longitude);
-        if (_lastPosition != null) {
-          final dist = Geolocator.distanceBetween(
-            _lastPosition!.latitude,
-            _lastPosition!.longitude,
-            pos.latitude,
-            pos.longitude,
-          );
-          setState(() {
-            _distanceKm += dist / 1000;
-            _currentLatLng = newLatLng;
-            _routePoints.add(newLatLng);
+      _positionStream =
+          Geolocator.getPositionStream(
+            locationSettings: const LocationSettings(
+              accuracy: LocationAccuracy.high,
+              distanceFilter: 5,
+            ),
+          ).listen((Position pos) {
+            final newLatLng = LatLng(pos.latitude, pos.longitude);
+            if (_lastPosition != null) {
+              final dist = Geolocator.distanceBetween(
+                _lastPosition!.latitude,
+                _lastPosition!.longitude,
+                pos.latitude,
+                pos.longitude,
+              );
+              setState(() {
+                _distanceKm += dist / 1000;
+                _currentLatLng = newLatLng;
+                _routePoints.add(newLatLng);
+              });
+              _mapController.move(newLatLng, 15);
+            } else {
+              setState(() {
+                _currentLatLng = newLatLng;
+                _routePoints.add(newLatLng);
+              });
+              _mapController.move(newLatLng, 15);
+            }
+            _lastPosition = pos;
           });
-          _mapController.move(newLatLng, 15);
-        } else {
-          setState(() {
-            _currentLatLng = newLatLng;
-            _routePoints.add(newLatLng);
-          });
-          _mapController.move(newLatLng, 15);
-        }
-        _lastPosition = pos;
-      });
     }
   }
 
@@ -130,7 +131,11 @@ class _RunningScreenState extends State<RunningScreen> {
       'totalDonation': FieldValue.increment(donation),
     }, SetOptions(merge: true));
 
-    final runRef = _db.collection('users').doc(user.uid).collection('runs').doc();
+    final runRef = _db
+        .collection('users')
+        .doc(user.uid)
+        .collection('runs')
+        .doc();
     batch.set(runRef, {
       'distanceKm': _distanceKm,
       'seconds': _seconds,
@@ -168,18 +173,36 @@ class _RunningScreenState extends State<RunningScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('러닝', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+                  const Text(
+                    '러닝',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   const SizedBox(height: 2),
                   Text(
                     _isRunning ? 'Running...' : 'Monday Morning Run',
-                    style: const TextStyle(color: Color(0xB3FFFFFF), fontSize: 13),
+                    style: const TextStyle(
+                      color: Color(0xB3FFFFFF),
+                      fontSize: 13,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   Text(
                     _distanceKm.toStringAsFixed(2),
-                    style: const TextStyle(color: Colors.white, fontSize: 52, fontWeight: FontWeight.bold, height: 1),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 52,
+                      fontWeight: FontWeight.bold,
+                      height: 1,
+                    ),
                   ),
-                  const Text('km', style: TextStyle(color: Color(0xB3FFFFFF), fontSize: 14)),
+                  const Text(
+                    'km',
+                    style: TextStyle(color: Color(0xB3FFFFFF), fontSize: 14),
+                  ),
                   const SizedBox(height: 16),
                   Row(
                     children: [
@@ -187,7 +210,11 @@ class _RunningScreenState extends State<RunningScreen> {
                       const SizedBox(width: 8),
                       _StatBox(label: '시간', value: _time),
                       const SizedBox(width: 8),
-                      _StatBox(label: '기부금', value: '₩$_donation', valueColor: const Color(0xFF00C896)),
+                      _StatBox(
+                        label: '기부금',
+                        value: '₩$_donation',
+                        valueColor: const Color(0xFF00C896),
+                      ),
                     ],
                   ),
                 ],
@@ -204,7 +231,8 @@ class _RunningScreenState extends State<RunningScreen> {
                     ),
                     children: [
                       TileLayer(
-                        urlTemplate: 'https://tiles.stadiamaps.com/tiles/outdoors/{z}/{x}/{y}.png',
+                        urlTemplate:
+                            'https://tiles.stadiamaps.com/tiles/outdoors/{z}/{x}/{y}.png',
                         userAgentPackageName: 'com.example.run_donate',
                       ),
                       if (_routePoints.length > 1)
@@ -249,9 +277,15 @@ class _RunningScreenState extends State<RunningScreen> {
                               decoration: BoxDecoration(
                                 color: const Color(0xFF141824),
                                 shape: BoxShape.circle,
-                                border: Border.all(color: const Color(0xFF1E2535)),
+                                border: Border.all(
+                                  color: const Color(0xFF1E2535),
+                                ),
                               ),
-                              child: const Icon(Icons.settings, color: Color(0xFF8899AA), size: 20),
+                              child: const Icon(
+                                Icons.settings,
+                                color: Color(0xFF8899AA),
+                                size: 20,
+                              ),
                             ),
                             GestureDetector(
                               onTap: _startStop,
@@ -275,14 +309,26 @@ class _RunningScreenState extends State<RunningScreen> {
                               decoration: BoxDecoration(
                                 color: const Color(0xFF141824),
                                 shape: BoxShape.circle,
-                                border: Border.all(color: const Color(0xFF1E2535)),
+                                border: Border.all(
+                                  color: const Color(0xFF1E2535),
+                                ),
                               ),
-                              child: const Icon(Icons.music_note, color: Color(0xFF8899AA), size: 20),
+                              child: const Icon(
+                                Icons.music_note,
+                                color: Color(0xFF8899AA),
+                                size: 20,
+                              ),
                             ),
                           ],
                         ),
                         const SizedBox(height: 12),
-                        const Text('목표 설정', style: TextStyle(color: Color(0xFF8899AA), fontSize: 12)),
+                        const Text(
+                          '목표 설정',
+                          style: TextStyle(
+                            color: Color(0xFF8899AA),
+                            fontSize: 12,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -297,7 +343,11 @@ class _RunningScreenState extends State<RunningScreen> {
 }
 
 class _StatBox extends StatelessWidget {
-  const _StatBox({required this.label, required this.value, this.valueColor = Colors.white});
+  const _StatBox({
+    required this.label,
+    required this.value,
+    this.valueColor = Colors.white,
+  });
   final String label;
   final String value;
   final Color valueColor;
@@ -314,9 +364,19 @@ class _StatBox extends StatelessWidget {
         ),
         child: Column(
           children: [
-            Text(label, style: const TextStyle(color: Color(0xFF8899AA), fontSize: 10)),
+            Text(
+              label,
+              style: const TextStyle(color: Color(0xFF8899AA), fontSize: 10),
+            ),
             const SizedBox(height: 4),
-            Text(value, style: TextStyle(color: valueColor, fontSize: 14, fontWeight: FontWeight.bold)),
+            Text(
+              value,
+              style: TextStyle(
+                color: valueColor,
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ],
         ),
       ),

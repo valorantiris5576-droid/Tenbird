@@ -29,7 +29,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   Future<void> _signUp() async {
     if (!_formKey.currentState!.validate()) return;
-    setState(() { _isLoading = true; _errorMessage = null; });
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
     try {
       await AuthService.signUp(
         username: _usernameController.text,
@@ -71,12 +74,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          const Text('Create Account',
+                          const Text(
+                            'Create Account',
                             textAlign: TextAlign.center,
-                            style: TextStyle(color: AppColors.textPrimary, fontSize: 28, fontWeight: FontWeight.w600),
+                            style: TextStyle(
+                              color: AppColors.textPrimary,
+                              fontSize: 28,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                           const SizedBox(height: 6),
-                          const Text('Join StepGive today',
+                          const Text(
+                            'Join StepGive today',
                             textAlign: TextAlign.center,
                             style: TextStyle(color: AppColors.textSecondary),
                           ),
@@ -87,7 +96,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             label: 'Username',
                             icon: Icons.person_outline,
                             textInputAction: TextInputAction.next,
-                            validator: (v) => v == null || v.trim().isEmpty ? 'Username is required' : null,
+                            validator: (v) => v == null || v.trim().isEmpty
+                                ? 'Username is required'
+                                : null,
                           ),
                           const SizedBox(height: 12),
                           // 이메일
@@ -98,8 +109,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             keyboardType: TextInputType.emailAddress,
                             textInputAction: TextInputAction.next,
                             validator: (v) {
-                              if (v == null || v.trim().isEmpty) return 'Email is required';
-                              if (!v.contains('@')) return 'Enter a valid email';
+                              if (v == null || v.trim().isEmpty)
+                                return 'Email is required';
+                              if (!v.contains('@'))
+                                return 'Enter a valid email';
                               return null;
                             },
                           ),
@@ -114,22 +127,31 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             onFieldSubmitted: (_) => _signUp(),
                             suffixIcon: IconButton(
                               icon: Icon(
-                                _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                                _obscurePassword
+                                    ? Icons.visibility_outlined
+                                    : Icons.visibility_off_outlined,
                                 color: AppColors.textSecondary,
                               ),
-                              onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                              onPressed: () => setState(
+                                () => _obscurePassword = !_obscurePassword,
+                              ),
                             ),
                             validator: (v) {
-                              if (v == null || v.isEmpty) return 'Password is required';
+                              if (v == null || v.isEmpty)
+                                return 'Password is required';
                               if (v.length < 6) return 'At least 6 characters';
                               return null;
                             },
                           ),
                           if (_errorMessage != null) ...[
                             const SizedBox(height: 12),
-                            Text(_errorMessage!,
+                            Text(
+                              _errorMessage!,
                               textAlign: TextAlign.center,
-                              style: const TextStyle(color: Colors.redAccent, fontSize: 13),
+                              style: const TextStyle(
+                                color: Colors.redAccent,
+                                fontSize: 13,
+                              ),
                             ),
                           ],
                           const SizedBox(height: 20),
@@ -140,20 +162,40 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.accent,
                                 foregroundColor: AppColors.background,
-                                disabledBackgroundColor: AppColors.accent.withValues(alpha: 0.5),
+                                disabledBackgroundColor: AppColors.accent
+                                    .withValues(alpha: 0.5),
                                 elevation: 0,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
                               ),
                               child: _isLoading
-                                  ? const SizedBox(width: 22, height: 22,
-                                      child: CircularProgressIndicator(strokeWidth: 2.5, color: AppColors.background))
-                                  : const Text('Sign Up', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                                  ? const SizedBox(
+                                      width: 22,
+                                      height: 22,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.5,
+                                        color: AppColors.background,
+                                      ),
+                                    )
+                                  : const Text(
+                                      'Sign Up',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
                             ),
                           ),
                           const SizedBox(height: 12),
                           TextButton(
-                            onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
-                            child: const Text('Already have an account? Log in', style: TextStyle(color: AppColors.accent)),
+                            onPressed: _isLoading
+                                ? null
+                                : () => Navigator.of(context).pop(),
+                            child: const Text(
+                              'Already have an account? Log in',
+                              style: TextStyle(color: AppColors.accent),
+                            ),
                           ),
                         ],
                       ),
@@ -176,14 +218,30 @@ class _SignUpBackground extends StatelessWidget {
     return Stack(
       children: [
         Container(color: AppColors.background),
-        Positioned(top: -80, right: -60,
-          child: Container(width: 260, height: 260,
-            decoration: BoxDecoration(shape: BoxShape.circle,
-              color: AppColors.accent.withValues(alpha: 0.12)))),
-        Positioned(bottom: -100, left: -80,
-          child: Container(width: 300, height: 300,
-            decoration: BoxDecoration(shape: BoxShape.circle,
-              color: const Color(0xFF1A3A5C).withValues(alpha: 0.5)))),
+        Positioned(
+          top: -80,
+          right: -60,
+          child: Container(
+            width: 260,
+            height: 260,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.accent.withValues(alpha: 0.12),
+            ),
+          ),
+        ),
+        Positioned(
+          bottom: -100,
+          left: -80,
+          child: Container(
+            width: 300,
+            height: 300,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFF1A3A5C).withValues(alpha: 0.5),
+            ),
+          ),
+        ),
       ],
     );
   }

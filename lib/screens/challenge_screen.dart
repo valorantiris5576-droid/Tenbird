@@ -8,9 +8,9 @@ class ChallengeItem {
   final String goal;
   final String reward;
   double progress;
-  double current; 
-  final double total;   
-  final int daysLeft;   
+  double current;
+  final double total;
+  final int daysLeft;
   final Color color;
 
   ChallengeItem({
@@ -26,8 +26,10 @@ class ChallengeItem {
     required this.color,
   });
 
-  String get totalString => total.toInt() == total ? '${total.toInt()} ' : '$total ';
-  String get currentString => current.toInt() == current ? '${current.toInt()}' : '$current';
+  String get totalString =>
+      total.toInt() == total ? '${total.toInt()} ' : '$total ';
+  String get currentString =>
+      current.toInt() == current ? '${current.toInt()}' : '$current';
 }
 
 class ChallengeScreen extends StatefulWidget {
@@ -144,67 +146,20 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
   ];
 
   final Set<String> _joinedIds = {};
-  
- 
   final List<String> _completedChallenges = [];
 
   @override
   void initState() {
     super.initState();
-    _confettiController = ConfettiController(duration: const Duration(seconds: 3));
+    _confettiController = ConfettiController(
+      duration: const Duration(seconds: 3),
+    );
   }
 
   @override
   void dispose() {
     _confettiController.dispose();
     super.dispose();
-  }
-
-  void _updateProgress(ChallengeItem item, double amount) {
-    setState(() {
-      item.current += amount;
-      if (item.current > item.total) item.current = item.total;
-      item.progress = item.current / item.total;
-
-      if (item.progress >= 1.0) {
-        _joinedIds.remove(item.id);
-        _completedChallenges.add(item.title);
-        _confettiController.play(); 
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('축하합니다! [${item.title}]을 완료하여 [${item.reward}]을 획득했습니다!'),
-            backgroundColor: const Color(0xFF00C896),
-            duration: const Duration(seconds: 4),
-          ),
-        );
-        return;
-      }
-
-      double remainingAmount = item.total - item.current;
-      double requiredPerDay = remainingAmount / item.daysLeft;
-
-      if (requiredPerDay > 25.0) { 
-        _joinedIds.remove(item.id);
-        item.current = 0.0;
-        item.progress = 0.0;
-
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            backgroundColor: const Color(0xFF111827),
-            title: const Text('챌린지 실패', style: TextStyle(color: Color(0xFFFF6B6B), fontWeight: FontWeight.bold)),
-            content: Text('남은 기간(${item.daysLeft}일) 동안 일일 목표량(${(requiredPerDay).toStringAsFixed(1)}km)을 채우는 것이 불가능하여 [${item.title}] 챌린지에서 탈락했습니다.'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('확인', style: TextStyle(color: Colors.white)),
-              )
-            ],
-          ),
-        );
-      }
-    });
   }
 
   void _show(ChallengeItem item) {
@@ -233,7 +188,11 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                         Expanded(
                           child: Text(
                             item.title,
-                            style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
@@ -241,29 +200,58 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                     ),
                     const SizedBox(height: 12),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: item.color.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
                         '목표: ${item.goal}',
-                        style: TextStyle(color: item.color, fontSize: 14, fontWeight: FontWeight.w600),
+                        style: TextStyle(
+                          color: item.color,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 16),
-                    const Text('챌린지 설명', style: TextStyle(color: Color(0xFF8899AA), fontSize: 12, fontWeight: FontWeight.bold)),
+                    const Text(
+                      '챌린지 설명',
+                      style: TextStyle(
+                        color: Color(0xFF8899AA),
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     const SizedBox(height: 6),
                     Text(
                       item.description,
-                      style: const TextStyle(color: Color(0xFFE5E7EB), fontSize: 14, height: 1.5),
+                      style: const TextStyle(
+                        color: Color(0xFFE5E7EB),
+                        fontSize: 14,
+                        height: 1.5,
+                      ),
                     ),
                     const SizedBox(height: 16),
-                    const Text('달성 보상', style: TextStyle(color: Color(0xFF8899AA), fontSize: 12, fontWeight: FontWeight.bold)),
+                    const Text(
+                      '달성 보상',
+                      style: TextStyle(
+                        color: Color(0xFF8899AA),
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     const SizedBox(height: 6),
                     Text(
                       item.reward,
-                      style: const TextStyle(color: Color(0xFF00C896), fontSize: 14, fontWeight: FontWeight.w600),
+                      style: const TextStyle(
+                        color: Color(0xFF00C896),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     const SizedBox(height: 24),
                     if (!has && isFull)
@@ -272,7 +260,11 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                         child: Center(
                           child: Text(
                             '챌린지는 동시에 최대 3개까지만 도전할 수 있습니다.',
-                            style: TextStyle(color: Color(0xFFFF6B6B), fontSize: 12, fontWeight: FontWeight.w600),
+                            style: TextStyle(
+                              color: Color(0xFFFF6B6B),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       ),
@@ -281,31 +273,41 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                       height: 52,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: has 
-                              ? const Color(0xFFEF4444) 
-                              : (isFull ? const Color(0xFF374151) : const Color(0xFF00C896)),
+                          backgroundColor: has
+                              ? const Color(0xFFEF4444)
+                              : (isFull
+                                    ? const Color(0xFF374151)
+                                    : const Color(0xFF00C896)),
                           disabledBackgroundColor: const Color(0xFF1F2937),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                           elevation: 0,
                         ),
-                        onPressed: (!has && isFull) ? null : () {
-                          setState(() {
-                            if (has) {
-                              _joinedIds.remove(item.id);
-                              item.current = 0.0;
-                              item.progress = 0.0;
-                            } else {
-                              _joinedIds.add(item.id);
-                            }
-                          });
-                          Navigator.pop(context);
-                        },
+                        onPressed: (!has && isFull)
+                            ? null
+                            : () {
+                                setState(() {
+                                  if (has) {
+                                    _joinedIds.remove(item.id);
+                                    item.current = 0.0;
+                                    item.progress = 0.0;
+                                  } else {
+                                    _joinedIds.add(item.id);
+                                  }
+                                });
+                                Navigator.pop(context);
+                              },
                         child: Text(
                           has ? '챌린지 포기하기' : '이 챌린지 도전하기',
                           style: TextStyle(
-                            fontSize: 16, 
+                            fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: has ? Colors.white : ((!has && isFull) ? const Color(0xFF6B7280) : const Color(0xFF0A0E1A)),
+                            color: has
+                                ? Colors.white
+                                : ((!has && isFull)
+                                      ? const Color(0xFF6B7280)
+                                      : const Color(0xFF0A0E1A)),
                           ),
                         ),
                       ),
@@ -322,8 +324,12 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final joined = _allChallenges.where((c) => _joinedIds.contains(c.id)).toList();
-    final available = _allChallenges.where((c) => !_joinedIds.contains(c.id)).toList();
+    final joined = _allChallenges
+        .where((c) => _joinedIds.contains(c.id))
+        .toList();
+    final available = _allChallenges
+        .where((c) => !_joinedIds.contains(c.id))
+        .toList();
 
     return Stack(
       children: [
@@ -335,11 +341,22 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('챌린지', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+                  const Text(
+                    '챌린지',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   const SizedBox(height: 20),
                   Text(
-                    '진행 중인 챌린지 (${joined.length}/3)', 
-                    style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600)
+                    '진행 중인 챌린지 (${joined.length}/3)',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   if (joined.isEmpty)
@@ -351,9 +368,14 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                         color: const Color(0xFF111827),
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      child: const Text('현재 도전 중인 챌린지가 없습니다.\n아래에서 마음에 드는 챌린지를 선택해 보세요.', 
+                      child: const Text(
+                        '현재 도전 중인 챌린지가 없습니다.\n아래에서 마음에 드는 챌린지를 선택해 보세요.',
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: Color(0xFF8899AA), fontSize: 13, height: 1.5)
+                        style: TextStyle(
+                          color: Color(0xFF8899AA),
+                          fontSize: 13,
+                          height: 1.5,
+                        ),
                       ),
                     )
                   else
@@ -361,7 +383,7 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       itemCount: joined.length,
-                      separatorBuilder: (_, _2) => const SizedBox(height: 12),
+                      separatorBuilder: (_, _) => const SizedBox(height: 12),
                       itemBuilder: (context, index) {
                         final item = joined[index];
                         return _ChallengeCard(
@@ -371,13 +393,20 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                       },
                     ),
                   const SizedBox(height: 28),
-                  const Text('여름을 시원하게 날려줄 챌린지', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600)),
+                  const Text(
+                    '여름을 시원하게 날려줄 챌린지',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                   const SizedBox(height: 12),
                   ListView.separated(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: available.length,
-                    separatorBuilder: (_, _2) => const SizedBox(height: 10),
+                    separatorBuilder: (_, _) => const SizedBox(height: 10),
                     itemBuilder: (context, index) {
                       final item = available[index];
                       return InkWell(
@@ -388,7 +417,9 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                           decoration: BoxDecoration(
                             color: const Color(0xFF111827),
                             borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: Colors.white.withValues(alpha: 0.04)),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.04),
+                            ),
                           ),
                           child: Row(
                             children: [
@@ -396,13 +427,32 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(item.title, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+                                    Text(
+                                      item.title,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                     const SizedBox(height: 4),
-                                    Text(item.goal, style: TextStyle(color: item.color, fontSize: 12, fontWeight: FontWeight.w500)),
+                                    Text(
+                                      item.goal,
+                                      style: TextStyle(
+                                        color: item.color,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
-                              const Icon(Icons.arrow_forward_ios, color: Color(0xFF4A5568), size: 14),
+                              const Icon(
+                                Icons.arrow_forward_ios,
+                                color: Color(0xFF4A5568),
+                                size: 14,
+                              ),
                             ],
                           ),
                         ),
@@ -410,13 +460,23 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
                     },
                   ),
                   const SizedBox(height: 28),
-                  const Text('완료한 챌린지', style: TextStyle(color: Color(0xB3FFFFFF), fontSize: 13, fontWeight: FontWeight.w500)),
+                  const Text(
+                    '완료한 챌린지',
+                    style: TextStyle(
+                      color: Color(0xB3FFFFFF),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                   const SizedBox(height: 10),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: _completedChallenges.map((label) => _Badge(label)).toList(),
+                    children: _completedChallenges
+                        .map((label) => _Badge(label))
+                        .toList(),
                   ),
+                  const SizedBox(height: 80),
                 ],
               ),
             ),
@@ -440,23 +500,23 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
 }
 
 class _ChallengeCard extends StatelessWidget {
-  const _ChallengeCard({
-    required this.challenge, 
-    required this.onTap,
-  });
-  
+  const _ChallengeCard({required this.challenge, required this.onTap});
+
   final ChallengeItem challenge;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final String unit = (challenge.title.contains('회') || challenge.goal.contains('회')) ? '회' : 'km';
+    final String unit =
+        (challenge.title.contains('회') || challenge.goal.contains('회'))
+        ? '회'
+        : 'km';
 
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF111827), 
-        borderRadius: BorderRadius.circular(16), 
-        border: Border.all(color: Colors.white.withValues(alpha: 0.06))
+        color: const Color(0xFF111827),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
@@ -474,13 +534,34 @@ class _ChallengeCard extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('${challenge.totalString}$unit', 
-                        style: const TextStyle(color: Color(0xFF0A0E1A), fontSize: 26, fontWeight: FontWeight.bold)),
-                      Text('${challenge.daysLeft}일 남음', style: TextStyle(color: const Color(0xFF0A0E1A).withValues(alpha: 0.7), fontSize: 11, fontWeight: FontWeight.bold)),
+                      Text(
+                        '${challenge.totalString}$unit',
+                        style: const TextStyle(
+                          color: Color(0xFF0A0E1A),
+                          fontSize: 26,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        '${challenge.daysLeft}일 남음',
+                        style: TextStyle(
+                          color: const Color(0xFF0A0E1A).withValues(alpha: 0.7),
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 2),
-                  Text(challenge.title, style: const TextStyle(color: Color(0xFF0A0E1A), fontSize: 14, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+                  Text(
+                    challenge.title,
+                    style: const TextStyle(
+                      color: Color(0xFF0A0E1A),
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ],
               ),
             ),
@@ -493,22 +574,43 @@ class _ChallengeCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('${challenge.currentString} / ${challenge.totalString}', style: TextStyle(color: challenge.color, fontSize: 13, fontWeight: FontWeight.bold)),
-                    Text('${(challenge.progress * 100).toInt()}%', style: const TextStyle(color: Color(0xFF8899AA), fontSize: 12, fontWeight: FontWeight.bold)),
+                    Text(
+                      '${challenge.currentString} / ${challenge.totalString}',
+                      style: TextStyle(
+                        color: challenge.color,
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      '${(challenge.progress * 100).toInt()}%',
+                      style: const TextStyle(
+                        color: Color(0xFF8899AA),
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 8),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(4),
                   child: LinearProgressIndicator(
-                    value: challenge.progress, 
-                    backgroundColor: const Color(0xFF1E2535), 
-                    valueColor: AlwaysStoppedAnimation<Color>(challenge.color), 
-                    minHeight: 6
+                    value: challenge.progress,
+                    backgroundColor: const Color(0xFF1E2535),
+                    valueColor: AlwaysStoppedAnimation<Color>(challenge.color),
+                    minHeight: 6,
                   ),
                 ),
                 const SizedBox(height: 12),
-                Text('보상: ${challenge.reward}', style: const TextStyle(color: Color(0xFF8899AA), fontSize: 11), overflow: TextOverflow.ellipsis),
+                Text(
+                  '보상: ${challenge.reward}',
+                  style: const TextStyle(
+                    color: Color(0xFF8899AA),
+                    fontSize: 11,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ],
             ),
           ),
@@ -529,26 +631,18 @@ class _Badge extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFF00C896).withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF00C896).withValues(alpha: 0.4)),
+        border: Border.all(
+          color: const Color(0xFF00C896).withValues(alpha: 0.4),
+        ),
       ),
-      child: Text(label, style: const TextStyle(color: Color(0xFF00C896), fontSize: 13, fontWeight: FontWeight.w500)),
+      child: Text(
+        label,
+        style: const TextStyle(
+          color: Color(0xFF00C896),
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
     );
   }
 }
-
-
-
-
-
-
-
-// #1. 홈 인터페이스 안 맞음
-
-// 3. 모든 창 오른쪽 코너에서 환영합니다 "user"님
-// 4. 러닝 창에 뛰지도 않는데 계속 바뀌는 페이스 + km
-// 5. 다 깨져서 알아보지 못하는 러닝 밑에 창
-// 6. 설정 음악은 일단 삭제
-
-// 8. 프로필 선 세개 더 자연스럽게
-// 9. 프로필 설정 기능 구현
-// 10. 홈 달리러 가기 → 러닝 탭 이동

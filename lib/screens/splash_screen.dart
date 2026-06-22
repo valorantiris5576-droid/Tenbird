@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
-
 import '../theme/app_colors.dart';
-
-
 import '../main.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -17,11 +14,15 @@ class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   static const _lottieAsset = 'assets/man running.json';
   static const _runnerWidth = 140.0;
-  static const _runDuration = Duration(milliseconds: 3700);
+  static const _runDuration = Duration(milliseconds: 4500);
 
   late final AnimationController _controller;
   Animation<double>? _position;
   bool _started = false;
+
+  final List<String> _letters = ['S', 'T', 'E', 'P', 'G', 'I', 'V', 'E'];
+  int _visibleLetters = 0;
+  bool _showSubtitle = false;
 
   @override
   void initState() {
@@ -43,6 +44,22 @@ class _SplashScreenState extends State<SplashScreen>
 
     setState(() {});
     _controller.forward();
+    _startTyping();
+  }
+
+  void _startTyping() async {
+    await Future.delayed(const Duration(milliseconds: 1200));
+    for (int i = 0; i < _letters.length; i++) {
+      if (!mounted) return;
+      await Future.delayed(const Duration(milliseconds: 280));
+      setState(() => _visibleLetters = i + 1);
+    }
+    await Future.delayed(const Duration(milliseconds: 100));
+    if (!mounted) return;
+    setState(() => _showSubtitle = true);
+    await Future.delayed(const Duration(milliseconds: 650));
+    if (!mounted) return;
+    _onAnimationStatus(AnimationStatus.completed);
   }
 
   void _onAnimationStatus(AnimationStatus status) {
@@ -50,7 +67,8 @@ class _SplashScreenState extends State<SplashScreen>
     Navigator.of(context).pushReplacement(
       PageRouteBuilder<void>(
         transitionDuration: const Duration(milliseconds: 1050),
-        pageBuilder: (context, animation, secondaryAnimation) => const AuthWrapper(),
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            const AuthWrapper(),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(opacity: animation, child: child);
         },
@@ -105,6 +123,52 @@ class _SplashScreenState extends State<SplashScreen>
                       left: position.value,
                       bottom: screenHeight * 0.28,
                       child: child!,
+                    ),
+                    Positioned(
+                      bottom: screenHeight * 0.38,
+                      left: 0,
+                      right: 0,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(_letters.length, (i) {
+                          return AnimatedOpacity(
+                            opacity: i < _visibleLetters ? 1.0 : 0.0,
+                            duration: const Duration(milliseconds: 200),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4,
+                              ),
+                              child: Text(
+                                _letters[i],
+                                style: const TextStyle(
+                                  color: Color(0xFF4DFFCC),
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 2,
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                      ),
+                    ),
+                    Positioned(
+                      bottom: screenHeight * 0.32,
+                      left: 0,
+                      right: 0,
+                      child: AnimatedOpacity(
+                        opacity: _showSubtitle ? 1.0 : 0.0,
+                        duration: const Duration(milliseconds: 600),
+                        child: const Text(
+                          '당신의 한 발자국이 이 세상을 바꿉니다',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Color(0xB3FFFFFF),
+                            fontSize: 13,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 );
