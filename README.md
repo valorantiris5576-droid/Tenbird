@@ -27,6 +27,9 @@ The purpose of StepGive application is to make users feel enjoyable in running a
 - <img width="959" height="496" alt="화면 캡처 2026-06-24 053734" src="https://github.com/user-attachments/assets/f393c640-8c4d-4351-b1d9-1c8d182365cf" />
 -<img width="956" height="497" alt="화면 캡처 2026-06-24 053849" src="https://github.com/user-attachments/assets/04f54af4-504a-40e3-92af-25b0a769ff7a" />
 
+## AI Usage
+This project was built with assistance from Claude AI for code generation and debugging. All ideas, design decisions, and project direction were made by the developer.
+
 
 ## Developer
 - Tenbird
