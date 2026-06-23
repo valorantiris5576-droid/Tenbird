@@ -1,7 +1,7 @@
 # StepGive app
 
 ## About 
-The purpose of StepGive application is to make users feel enjoyable in running and helps users build a consistent donate habit.
+- The purpose of StepGive application is to make users feel enjoyable in running and helps users build a consistent donate habit.
 
 ## Features
 - Distance of users running measurement with GPS
@@ -28,7 +28,7 @@ The purpose of StepGive application is to make users feel enjoyable in running a
 -<img width="956" height="497" alt="화면 캡처 2026-06-24 053849" src="https://github.com/user-attachments/assets/04f54af4-504a-40e3-92af-25b0a769ff7a" />
 
 ## AI Usage
-This project was built with assistance from Claude AI for code generation and debugging. All ideas, design decisions, and project direction were made by the developer.
+- The StepGive project was developed through assistance from Ai for code generation and debugging. All the ideas, decisions and project guidance were made by myself, Tenbird.
 
 
 ## Developer
