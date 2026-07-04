@@ -143,6 +143,17 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
       daysLeft: 14,
       color: const Color(0xFF11998E),
     ),
+    ChallengeItem(
+      id: '11',
+      title: '7979 친구 챌린지',
+      goal: '친구와 합산 79.79km 달성',
+      description:
+          '친구와 함께 달리자. 혼자보단 둘이 함께 달리면 더 멀리 갈 수 있다. 친구와 79.79km 달성후 같이 보상 받자.',
+      reward: '+500원 추가 기부 및 우정 러너 뱃지',
+      total: 79.79,
+      daysLeft: 30,
+      color: const Color(0xFF7C3AED),
+    ),
   ];
 
   final Set<String> _joinedIds = {};
@@ -166,155 +177,168 @@ class _ChallengeScreenState extends State<ChallengeScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: const Color(0xFF111827),
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            final has = _joinedIds.contains(item.id);
-            final isFull = _joinedIds.length >= 3;
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.6,
+          maxChildSize: 0.9,
+          minChildSize: 0.4,
+          builder: (context, scrollController) {
+            return StatefulBuilder(
+              builder: (context, setModalState) {
+                final has = _joinedIds.contains(item.id);
+                final isFull = _joinedIds.length >= 3;
 
-            return SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                return SingleChildScrollView(
+                  controller: scrollController,
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: Text(
-                            item.title,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
+                        Center(
+                          child: Container(
+                            width: 40,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF1E2535),
+                              borderRadius: BorderRadius.circular(2),
                             ),
-                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: item.color.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        '목표: ${item.goal}',
-                        style: TextStyle(
-                          color: item.color,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
+                        const SizedBox(height: 16),
+                        Text(
+                          item.title,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      '챌린지 설명',
-                      style: TextStyle(
-                        color: Color(0xFF8899AA),
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      item.description,
-                      style: const TextStyle(
-                        color: Color(0xFFE5E7EB),
-                        fontSize: 14,
-                        height: 1.5,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      '달성 보상',
-                      style: TextStyle(
-                        color: Color(0xFF8899AA),
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      item.reward,
-                      style: const TextStyle(
-                        color: Color(0xFF00C896),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    if (!has && isFull)
-                      const Padding(
-                        padding: EdgeInsets.only(bottom: 12),
-                        child: Center(
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: item.color.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                           child: Text(
-                            '챌린지는 동시에 최대 3개까지만 도전할 수 있습니다.',
+                            '목표: ${item.goal}',
                             style: TextStyle(
-                              color: Color(0xFFFF6B6B),
-                              fontSize: 12,
+                              color: item.color,
+                              fontSize: 14,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
-                      ),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 52,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: has
-                              ? const Color(0xFFEF4444)
-                              : (isFull
-                                    ? const Color(0xFF374151)
-                                    : const Color(0xFF00C896)),
-                          disabledBackgroundColor: const Color(0xFF1F2937),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          elevation: 0,
-                        ),
-                        onPressed: (!has && isFull)
-                            ? null
-                            : () {
-                                setState(() {
-                                  if (has) {
-                                    _joinedIds.remove(item.id);
-                                    item.current = 0.0;
-                                    item.progress = 0.0;
-                                  } else {
-                                    _joinedIds.add(item.id);
-                                  }
-                                });
-                                Navigator.pop(context);
-                              },
-                        child: Text(
-                          has ? '챌린지 포기하기' : '이 챌린지 도전하기',
+                        const SizedBox(height: 16),
+                        const Text(
+                          '챌린지 설명',
                           style: TextStyle(
-                            fontSize: 16,
+                            color: Color(0xFF8899AA),
+                            fontSize: 12,
                             fontWeight: FontWeight.bold,
-                            color: has
-                                ? Colors.white
-                                : ((!has && isFull)
-                                      ? const Color(0xFF6B7280)
-                                      : const Color(0xFF0A0E1A)),
                           ),
                         ),
-                      ),
+                        const SizedBox(height: 6),
+                        Text(
+                          item.description,
+                          style: const TextStyle(
+                            color: Color(0xFFE5E7EB),
+                            fontSize: 14,
+                            height: 1.5,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          '달성 보상',
+                          style: TextStyle(
+                            color: Color(0xFF8899AA),
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          item.reward,
+                          style: const TextStyle(
+                            color: Color(0xFF00C896),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        if (!has && isFull)
+                          const Padding(
+                            padding: EdgeInsets.only(bottom: 12),
+                            child: Center(
+                              child: Text(
+                                '챌린지는 동시에 최대 3개까지만 도전할 수 있습니다.',
+                                style: TextStyle(
+                                  color: Color(0xFFFF6B6B),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 52,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: has
+                                  ? const Color(0xFFEF4444)
+                                  : (isFull
+                                        ? const Color(0xFF374151)
+                                        : const Color(0xFF00C896)),
+                              disabledBackgroundColor: const Color(0xFF1F2937),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 0,
+                            ),
+                            onPressed: (!has && isFull)
+                                ? null
+                                : () {
+                                    setState(() {
+                                      if (has) {
+                                        _joinedIds.remove(item.id);
+                                        item.current = 0.0;
+                                        item.progress = 0.0;
+                                      } else {
+                                        _joinedIds.add(item.id);
+                                      }
+                                    });
+                                    Navigator.pop(context);
+                                  },
+                            child: Text(
+                              has ? '챌린지 포기하기' : '이 챌린지 도전하기',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: has
+                                    ? Colors.white
+                                    : ((!has && isFull)
+                                          ? const Color(0xFF6B7280)
+                                          : const Color(0xFF0A0E1A)),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
                     ),
-                  ],
-                ),
-              ),
+                  ),
+                );
+              },
             );
           },
         );

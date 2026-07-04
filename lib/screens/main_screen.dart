@@ -37,17 +37,12 @@ class MainScreenState extends State<MainScreen> {
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 400),
-          child: IndexedStack(
-            index: _idx,
-            children: pages,
-          ),
+          child: IndexedStack(index: _idx, children: pages),
         ),
       ),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
-          border: Border(
-            top: BorderSide(color: Color(0xFF1E2535), width: 0.5),
-          ),
+          border: Border(top: BorderSide(color: Color(0xFF1E2535), width: 0.5)),
         ),
         child: BottomNavigationBar(
           currentIndex: _idx,
@@ -59,11 +54,23 @@ class MainScreenState extends State<MainScreen> {
           selectedFontSize: 10,
           unselectedFontSize: 10,
           items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: '홈'),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home_outlined),
+              label: '홈',
+            ),
             BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: '기부'),
-            BottomNavigationBarItem(icon: Icon(Icons.directions_run), label: '러닝'),
-            BottomNavigationBarItem(icon: Icon(Icons.emoji_events_outlined), label: '챌린지'),
-            BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: '프로필'),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.directions_run),
+              label: '러닝',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.emoji_events_outlined),
+              label: '챌린지',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person_outline),
+              label: '프로필',
+            ),
           ],
         ),
       ),

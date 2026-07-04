@@ -14,11 +14,12 @@ class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   static const _lottieAsset = 'assets/man running.json';
   static const _runnerWidth = 140.0;
-  static const _runDuration = Duration(milliseconds: 4500);
+  static const _runDuration = Duration(milliseconds: 3800);
 
   late final AnimationController _controller;
   Animation<double>? _position;
   bool _started = false;
+  bool _navigated = false;
 
   final List<String> _letters = ['S', 'T', 'E', 'P', 'G', 'I', 'V', 'E'];
   int _visibleLetters = 0;
@@ -51,19 +52,25 @@ class _SplashScreenState extends State<SplashScreen>
     await Future.delayed(const Duration(milliseconds: 1200));
     for (int i = 0; i < _letters.length; i++) {
       if (!mounted) return;
-      await Future.delayed(const Duration(milliseconds: 280));
+      await Future.delayed(const Duration(milliseconds: 200));
       setState(() => _visibleLetters = i + 1);
     }
-    await Future.delayed(const Duration(milliseconds: 100));
+    await Future.delayed(const Duration(milliseconds: 50));
     if (!mounted) return;
     setState(() => _showSubtitle = true);
     await Future.delayed(const Duration(milliseconds: 650));
     if (!mounted) return;
-    _onAnimationStatus(AnimationStatus.completed);
+    _goToNext();
   }
 
   void _onAnimationStatus(AnimationStatus status) {
     if (status != AnimationStatus.completed || !mounted) return;
+    _goToNext();
+  }
+
+  void _goToNext() {
+    if (_navigated) return;
+    _navigated = true;
     Navigator.of(context).pushReplacement(
       PageRouteBuilder<void>(
         transitionDuration: const Duration(milliseconds: 1050),
@@ -78,9 +85,7 @@ class _SplashScreenState extends State<SplashScreen>
 
   void _skipToLogin() {
     _controller.stop();
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => const AuthWrapper()),
-    );
+    _goToNext();
   }
 
   @override

@@ -103,10 +103,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         'username': username,
                         'addedAt': FieldValue.serverTimestamp(),
                       });
-                  if (context.mounted)
+                  if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('$username 님을 친구로 추가했어요!')),
                     );
+                  }
                 }
               }
             },

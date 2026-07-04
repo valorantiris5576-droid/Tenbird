@@ -5,6 +5,7 @@ import '../services/auth_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/glass_container.dart';
 import 'sign_up_screen.dart';
+import '../app_language.dart'; // 추가!
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -21,6 +22,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isGoogleLoading = false;
   bool _obscurePassword = true;
   String? _errorMessage;
+  String _selectedLang = 'en'; // 추가!
 
   @override
   void dispose() {
@@ -291,9 +293,30 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  // 언어 변경 함수 - 버튼 누르면 언어 바꿔주는 함수
+  void _changeLang(String langCode) {
+    setState(() {
+      _selectedLang = langCode;
+      AppLanguage.current = langCode;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final busy = _isLoading || _isGuestLoading || _isGoogleLoading;
+
+    // 현재 언어 제외한 버튼 4개만 보여주기
+    final allLangs = [
+      {'code': 'zh', 'label': 'Ch', 'flag': '🇨🇳'},
+      {'code': 'ko', 'label': 'Kr', 'flag': '🇰🇷'},
+      {'code': 'ja', 'label': 'Jp', 'flag': '🇯🇵'},
+      {'code': 'es', 'label': 'Es', 'flag': '🇪🇸'},
+      {'code': 'en', 'label': 'En', 'flag': '🇺🇸'},
+    ];
+    final visibleLangs = allLangs
+        .where((l) => l['code'] != _selectedLang)
+        .toList();
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Stack(
@@ -326,10 +349,16 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              const Text(
-                                'Welcome',
+                              Text(
+                                AppLanguage.t(
+                                  en: 'Welcome',
+                                  ko: '환영합니다',
+                                  ja: 'ようこそ',
+                                  es: 'Bienvenido',
+                                  zh: '欢迎',
+                                ),
                                 textAlign: TextAlign.center,
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: AppColors.textPrimary,
                                   fontSize: 28,
                                   fontWeight: FontWeight.w600,
@@ -338,17 +367,35 @@ class _LoginScreenState extends State<LoginScreen> {
                               const SizedBox(height: 12),
                               GlassTextField(
                                 controller: _usernameController,
-                                label: 'Username',
+                                label: AppLanguage.t(
+                                  en: 'Username',
+                                  ko: '유저네임',
+                                  ja: 'ユーザー名',
+                                  es: 'Usuario',
+                                  zh: '用户名',
+                                ),
                                 icon: Icons.person_outline,
                                 textInputAction: TextInputAction.next,
                                 validator: (v) => v == null || v.trim().isEmpty
-                                    ? 'Username is required'
+                                    ? AppLanguage.t(
+                                        en: 'Username is required',
+                                        ko: '유저네임을 입력하세요',
+                                        ja: 'ユーザー名が必要です',
+                                        es: 'Usuario requerido',
+                                        zh: '请输入用户名',
+                                      )
                                     : null,
                               ),
                               const SizedBox(height: 10),
                               GlassTextField(
                                 controller: _passwordController,
-                                label: 'Password',
+                                label: AppLanguage.t(
+                                  en: 'Password',
+                                  ko: '비밀번호',
+                                  ja: 'パスワード',
+                                  es: 'Contraseña',
+                                  zh: '密码',
+                                ),
                                 icon: Icons.lock_outline,
                                 obscureText: _obscurePassword,
                                 textInputAction: TextInputAction.done,
@@ -365,10 +412,24 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                 ),
                                 validator: (v) {
-                                  if (v == null || v.isEmpty)
-                                    return 'Password is required';
-                                  if (v.length < 6)
-                                    return 'At least 6 characters';
+                                  if (v == null || v.isEmpty) {
+                                    return AppLanguage.t(
+                                      en: 'Password is required',
+                                      ko: '비밀번호를 입력하세요',
+                                      ja: 'パスワードが必要です',
+                                      es: 'Contraseña requerida',
+                                      zh: '请输入密码',
+                                    );
+                                  }
+                                  if (v.length < 6) {
+                                    return AppLanguage.t(
+                                      en: 'At least 6 characters',
+                                      ko: '6자 이상 입력하세요',
+                                      ja: '6文字以上必要です',
+                                      es: 'Mínimo 6 caracteres',
+                                      zh: '至少6个字符',
+                                    );
+                                  }
                                   return null;
                                 },
                               ),
@@ -386,7 +447,6 @@ class _LoginScreenState extends State<LoginScreen> {
                               const SizedBox(height: 12),
                               Row(
                                 children: [
-                                  // Google 로그인 버튼
                                   Expanded(
                                     child: _SocialButton(
                                       label: 'Google',
@@ -401,10 +461,15 @@ class _LoginScreenState extends State<LoginScreen> {
                                     ),
                                   ),
                                   const SizedBox(width: 8),
-                                  // Guest 로그인 버튼
                                   Expanded(
                                     child: _SocialButton(
-                                      label: 'Guest',
+                                      label: AppLanguage.t(
+                                        en: 'Guest',
+                                        ko: '게스트',
+                                        ja: 'ゲスト',
+                                        es: 'Invitado',
+                                        zh: '访客',
+                                      ),
                                       icon: Icons.person_outline,
                                       iconColor: Colors.white54,
                                       borderColor: Colors.white24,
@@ -441,9 +506,15 @@ class _LoginScreenState extends State<LoginScreen> {
                                             color: AppColors.background,
                                           ),
                                         )
-                                      : const Text(
-                                          'Login',
-                                          style: TextStyle(
+                                      : Text(
+                                          AppLanguage.t(
+                                            en: 'Login',
+                                            ko: '로그인',
+                                            ja: 'ログイン',
+                                            es: 'Iniciar sesión',
+                                            zh: '登录',
+                                          ),
+                                          style: const TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.w600,
                                           ),
@@ -458,9 +529,15 @@ class _LoginScreenState extends State<LoginScreen> {
                                     onPressed: busy
                                         ? null
                                         : _showForgotPasswordDialog,
-                                    child: const Text(
-                                      'Forgot password?',
-                                      style: TextStyle(
+                                    child: Text(
+                                      AppLanguage.t(
+                                        en: 'Forgot password?',
+                                        ko: '비밀번호 찾기',
+                                        ja: 'パスワードを忘れた',
+                                        es: '¿Olvidaste tu contraseña?',
+                                        zh: '忘记密码？',
+                                      ),
+                                      style: const TextStyle(
                                         color: AppColors.textSecondary,
                                       ),
                                     ),
@@ -472,13 +549,41 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                   TextButton(
                                     onPressed: busy ? null : _goToSignUp,
-                                    child: const Text(
-                                      'Sign Up',
-                                      style: TextStyle(color: AppColors.accent),
+                                    child: Text(
+                                      AppLanguage.t(
+                                        en: 'Sign Up',
+                                        ko: '회원가입',
+                                        ja: '新規登録',
+                                        es: 'Registrarse',
+                                        zh: '注册',
+                                      ),
+                                      style: const TextStyle(
+                                        color: AppColors.accent,
+                                      ),
                                     ),
                                   ),
                                 ],
                               ),
+
+                              // 언어 선택 버튼 4개
+                              const SizedBox(height: 16),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: visibleLangs.map((lang) {
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 4,
+                                    ),
+                                    child: _LangButton(
+                                      label: lang['label']!,
+                                      flag: lang['flag']!,
+                                      langCode: lang['code']!,
+                                      onTap: () => _changeLang(lang['code']!),
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                              const SizedBox(height: 8),
                             ],
                           ),
                         ),
@@ -588,6 +693,49 @@ class _SocialButton extends StatelessWidget {
                   ),
                 ],
               ),
+      ),
+    );
+  }
+}
+
+// 언어 버튼 위젯
+// 국기 + 언어 코드 보여주는 작은 버튼이에요
+class _LangButton extends StatelessWidget {
+  const _LangButton({
+    required this.label,
+    required this.flag,
+    required this.langCode,
+    required this.onTap,
+  });
+  final String label, flag, langCode;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: const Color(0xFF141824),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: const Color(0xFF1E2535)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(flag, style: const TextStyle(fontSize: 14)),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white70,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

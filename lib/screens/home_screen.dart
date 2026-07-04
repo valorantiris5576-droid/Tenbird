@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../app_language.dart';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -6,7 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import '../widgets/glass_container.dart';
 import '../services/weather_service.dart';
-import 'main_screen.dart';
+import '../app_language.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
@@ -30,17 +31,53 @@ class _HomeScreenState extends State<HomeScreen> {
   String _timeString = '';
   String _dateString = '';
   Timer? _timer;
-  String _temp = "로딩 중...";
+  String _temp = "Loading...";
   String _weatherDescription = "";
   late final String _randomQuote;
 
-  final List<String> _quotes = [
-    '1km를 달릴 때마다 10원이 기부됩니다',
-    '오늘도 한 걸음, 세상도 한 걸음',
-    '달리는 만큼 세상이 바뀝니다',
-    '당신의 땀이 누군가의 희망이 됩니다',
-    '작은 발걸음이 큰 변화를 만듭니다',
-    '함께 달리면 더 멀리 갈 수 있어요',
+  List<String> get _quotes => [
+    AppLanguage.t(
+      en: 'Every 1km you run, 10 won is donated',
+      ko: '1km를 달릴 때마다 10원이 기부됩니다',
+      ja: '1kmごとに10ウォンが寄付されます',
+      es: 'Por cada 1km, se donan 10 wones',
+      zh: '每跑1公里，捐赠10韩元',
+    ),
+    AppLanguage.t(
+      en: 'One step at a time, one step for the world',
+      ko: '오늘도 한 걸음, 세상도 한 걸음',
+      ja: '一歩一歩、世界も一歩',
+      es: 'Un paso a la vez, un paso para el mundo',
+      zh: '一步一步，世界也在前进',
+    ),
+    AppLanguage.t(
+      en: 'The more you run, the more you change the world',
+      ko: '달리는 만큼 세상이 바뀝니다',
+      ja: '走るほど、世界が変わります',
+      es: 'Cuanto más corres, más cambias el mundo',
+      zh: '跑得越多，世界改变越多',
+    ),
+    AppLanguage.t(
+      en: 'Your sweat becomes someone else\'s hope',
+      ko: '당신의 땀이 누군가의 희망이 됩니다',
+      ja: 'あなたの汗が誰かの希望になります',
+      es: 'Tu sudor se convierte en la esperanza de alguien',
+      zh: '你的汗水成为他人的希望',
+    ),
+    AppLanguage.t(
+      en: 'Small steps create big changes',
+      ko: '작은 발걸음이 큰 변화를 만듭니다',
+      ja: '小さな一歩が大きな変化を生む',
+      es: 'Pequeños pasos crean grandes cambios',
+      zh: '小步伐创造大变化',
+    ),
+    AppLanguage.t(
+      en: 'Together we can go further',
+      ko: '함께 달리면 더 멀리 갈 수 있어요',
+      ja: '一緒に走ればもっと遠くへ行ける',
+      es: 'Juntos podemos llegar más lejos',
+      zh: '一起跑，可以走得更远',
+    ),
   ];
 
   Future<void> _signOut() async {
@@ -68,8 +105,8 @@ class _HomeScreenState extends State<HomeScreen> {
   void _updateTime() {
     final DateTime now = DateTime.now();
     setState(() {
-      _timeString = DateFormat('aa hh:mm', 'ko').format(now);
-      _dateString = DateFormat('M월 d일 (E)', 'ko').format(now);
+      _timeString = DateFormat('hh:mm aa').format(now);
+      _dateString = DateFormat('MMM d (E)').format(now);
     });
   }
 
@@ -88,8 +125,8 @@ class _HomeScreenState extends State<HomeScreen> {
       });
     } catch (e) {
       setState(() {
-        _temp = "에러";
-        _weatherDescription = "날씨 로드 실패";
+        _temp = "Error";
+        _weatherDescription = "Failed to load weather";
       });
     }
   }
@@ -122,7 +159,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   Row(
                     children: [
                       Text(
-                        isGuest ? '게스트' : (user?.displayName ?? ''),
+                        isGuest
+                            ? AppLanguage.t(
+                                en: 'Guest',
+                                ko: '게스트',
+                                ja: 'ゲスト',
+                                es: 'Invitado',
+                                zh: '访客',
+                              )
+                            : (user?.displayName ?? ''),
                         style: const TextStyle(
                           color: Color(0xB3FFFFFF),
                           fontSize: 14,
@@ -210,10 +255,11 @@ class _HomeScreenState extends State<HomeScreen> {
               StreamBuilder<DocumentSnapshot>(
                 stream: _db.collection('global').doc('stats').snapshots(),
                 builder: (context, snapshot) {
+                  if (!snapshot.hasData) return const SizedBox();
                   final data = snapshot.data?.data() as Map?;
-                  final total = data?['totalDonation'] ?? 0;
-                  final totalKm = ((data?['totalDonation'] ?? 0) / 10)
-                      .toStringAsFixed(0);
+                  if (data == null) return const SizedBox();
+                  final total = data['totalDonation'] ?? 0;
+                  final totalKm = (total / 10).toStringAsFixed(0);
                   return Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(28),
@@ -225,9 +271,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          '전체 기부 누적',
-                          style: TextStyle(
+                        Text(
+                          AppLanguage.t(
+                            en: 'Total Donations',
+                            ko: '전체 기부 누적',
+                            ja: '総寄付額',
+                            es: 'Donaciones totales',
+                            zh: '总捐款',
+                          ),
+                          style: const TextStyle(
                             color: Color(0xB3FFFFFF),
                             fontSize: 13,
                             letterSpacing: 0.5,
@@ -244,7 +296,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          '함께 달린 거리 ${totalKm}km',
+                          AppLanguage.t(
+                            en: 'Distance run together: ${totalKm}km',
+                            ko: '함께 달린 거리 ${totalKm}km',
+                            ja: '一緒に走った距離: ${totalKm}km',
+                            es: 'Distancia recorrida juntos: ${totalKm}km',
+                            zh: '共同跑过的距离: ${totalKm}km',
+                          ),
                           style: const TextStyle(
                             color: Color(0xB3FFFFFF),
                             fontSize: 12,
@@ -275,9 +333,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          '내 기부금',
-                          style: TextStyle(
+                        Text(
+                          AppLanguage.t(
+                            en: 'My Donations',
+                            ko: '내 기부금',
+                            ja: '私の寄付',
+                            es: 'Mis donaciones',
+                            zh: '我的捐款',
+                          ),
+                          style: const TextStyle(
                             color: Color(0xB3FFFFFF),
                             fontSize: 13,
                           ),
@@ -293,7 +357,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '총 ${km.toStringAsFixed(1)}km 달림',
+                          AppLanguage.t(
+                            en: 'Total distance: ${km.toStringAsFixed(1)}km',
+                            ko: '총 ${km.toStringAsFixed(1)}km 달림',
+                            ja: '合計距離: ${km.toStringAsFixed(1)}km',
+                            es: 'Distancia total: ${km.toStringAsFixed(1)}km',
+                            zh: '总距离: ${km.toStringAsFixed(1)}km',
+                          ),
                           style: const TextStyle(
                             color: Color(0xB3FFFFFF),
                             fontSize: 12,
@@ -342,40 +412,58 @@ class _HomeScreenState extends State<HomeScreen> {
                       color: const Color(0xFF00C896).withValues(alpha: 0.4),
                     ),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '🏆 챌린지',
-                            style: TextStyle(
+                            AppLanguage.t(
+                              en: 'Challenge',
+                              ko: '챌린지',
+                              ja: 'チャレンジ',
+                              es: 'Desafío',
+                              zh: '挑战',
+                            ),
+                            style: const TextStyle(
                               color: Color(0xFF00C896),
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          SizedBox(height: 4),
+                          const SizedBox(height: 4),
                           Text(
-                            '여름을 시원하게 날려줄 챌린지',
-                            style: TextStyle(
+                            AppLanguage.t(
+                              en: 'Cool challenges for this summer!',
+                              ko: '여름을 시원하게 날려줄 챌린지',
+                              ja: '夏を盛り上げるチャレンジ！',
+                              es: '¡Desafíos geniales para este verano!',
+                              zh: '夏日挑战来袭！',
+                            ),
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          SizedBox(height: 2),
+                          const SizedBox(height: 2),
                           Text(
-                            '달성하면 기부금 보너스!',
-                            style: TextStyle(
+                            AppLanguage.t(
+                              en: 'Bonus donations when you complete!',
+                              ko: '달성하면 기부금 보너스!',
+                              ja: '達成したら寄付ボーナス！',
+                              es: '¡Donaciones extra al completar!',
+                              zh: '完成后获得额外捐款！',
+                            ),
+                            style: const TextStyle(
                               color: Color(0xB3FFFFFF),
                               fontSize: 12,
                             ),
                           ),
                         ],
                       ),
-                      Icon(
+                      const Icon(
                         Icons.arrow_forward_ios,
                         color: Color(0xFF00C896),
                         size: 16,
@@ -399,9 +487,18 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     elevation: 0,
                   ),
-                  child: const Text(
-                    '지금 달리러 가기',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  child: Text(
+                    AppLanguage.t(
+                      en: 'Start Running!',
+                      ko: '지금 달리러 가기',
+                      ja: '走り始める！',
+                      es: '¡Empezar a correr!',
+                      zh: '开始跑步！',
+                    ),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
