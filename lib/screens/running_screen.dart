@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:async';
 import 'package:geolocator/geolocator.dart';
+import '../app_language.dart';
 
 class RunningScreen extends StatefulWidget {
   const RunningScreen({super.key});
@@ -64,9 +65,19 @@ class _RunningScreenState extends State<RunningScreen> {
       final ok = await _checkPermission();
       if (!ok) {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('위치 권한이 필요해요!')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                AppLanguage.t(
+                  en: 'Location permission required!',
+                  ko: '위치 권한이 필요해요!',
+                  ja: '位置情報の許可が必要です！',
+                  es: '¡Se requiere permiso de ubicación!',
+                  zh: '需要位置权限！',
+                ),
+              ),
+            ),
+          );
         }
         return;
       }
@@ -173,9 +184,15 @@ class _RunningScreenState extends State<RunningScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    '러닝',
-                    style: TextStyle(
+                  Text(
+                    AppLanguage.t(
+                      en: 'Running',
+                      ko: '러닝',
+                      ja: 'ランニング',
+                      es: 'Correr',
+                      zh: '跑步',
+                    ),
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
@@ -183,7 +200,21 @@ class _RunningScreenState extends State<RunningScreen> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    _isRunning ? 'Running...' : 'Monday Morning Run',
+                    _isRunning
+                        ? AppLanguage.t(
+                            en: 'Running...',
+                            ko: '달리는 중...',
+                            ja: '走っています...',
+                            es: 'Corriendo...',
+                            zh: '跑步中...',
+                          )
+                        : AppLanguage.t(
+                            en: 'Ready to run!',
+                            ko: '달릴 준비 됐나요?',
+                            ja: '走る準備はできていますか？',
+                            es: '¡Listo para correr!',
+                            zh: '准备好跑步了吗？',
+                          ),
                     style: const TextStyle(
                       color: Color(0xB3FFFFFF),
                       fontSize: 13,
@@ -206,12 +237,36 @@ class _RunningScreenState extends State<RunningScreen> {
                   const SizedBox(height: 16),
                   Row(
                     children: [
-                      _StatBox(label: '페이스', value: _pace),
-                      const SizedBox(width: 8),
-                      _StatBox(label: '시간', value: _time),
+                      _StatBox(
+                        label: AppLanguage.t(
+                          en: 'Pace',
+                          ko: '페이스',
+                          ja: 'ペース',
+                          es: 'Ritmo',
+                          zh: '配速',
+                        ),
+                        value: _pace,
+                      ),
                       const SizedBox(width: 8),
                       _StatBox(
-                        label: '기부금',
+                        label: AppLanguage.t(
+                          en: 'Time',
+                          ko: '시간',
+                          ja: '時間',
+                          es: 'Tiempo',
+                          zh: '时间',
+                        ),
+                        value: _time,
+                      ),
+                      const SizedBox(width: 8),
+                      _StatBox(
+                        label: AppLanguage.t(
+                          en: 'Donation',
+                          ko: '기부금',
+                          ja: '寄付金',
+                          es: 'Donación',
+                          zh: '捐款',
+                        ),
                         value: '₩$_donation',
                         valueColor: const Color(0xFF00C896),
                       ),
@@ -322,9 +377,15 @@ class _RunningScreenState extends State<RunningScreen> {
                           ],
                         ),
                         const SizedBox(height: 12),
-                        const Text(
-                          '목표 설정',
-                          style: TextStyle(
+                        Text(
+                          AppLanguage.t(
+                            en: 'Set Goal',
+                            ko: '목표 설정',
+                            ja: '目標設定',
+                            es: 'Establecer meta',
+                            zh: '设定目标',
+                          ),
+                          style: const TextStyle(
                             color: Color(0xFF8899AA),
                             fontSize: 12,
                           ),

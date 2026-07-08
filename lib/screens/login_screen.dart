@@ -5,7 +5,8 @@ import '../services/auth_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/glass_container.dart';
 import 'sign_up_screen.dart';
-import '../app_language.dart'; // 추가!
+import '../app_language.dart';
+import '../app_language_notifier.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -293,12 +294,11 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // 언어 변경 함수 - 버튼 누르면 언어 바꿔주는 함수
   void _changeLang(String langCode) {
     setState(() {
       _selectedLang = langCode;
-      AppLanguage.current = langCode;
     });
+    AppLanguageNotifier.instance.changeLang(langCode);
   }
 
   @override

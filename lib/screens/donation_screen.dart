@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../app_language.dart';
 
 class DonationScreen extends StatelessWidget {
   const DonationScreen({super.key});
@@ -13,44 +14,63 @@ class DonationScreen extends StatelessWidget {
       backgroundColor: const Color(0xFF0A0E1A),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal : 20, vertical : 16),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                '기부 현황',
-                style: TextStyle(
+              Text(
+                AppLanguage.t(
+                  en: 'Donation Status',
+                  ko: '기부 현황',
+                  ja: '寄付状況',
+                  es: 'Estado de donación',
+                  zh: '捐款状况',
+                ),
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 20),
+
+              // 내 기부금 카드
               StreamBuilder<DocumentSnapshot>(
                 stream: FirebaseFirestore.instance
-                .collection('users')
-                .doc(uid)
-                .snapshots(),
-              builder : (context , snapshot) {
-                final myDon = (snapshot.data?.data() as Map?)?['totalDonation'] ?? 0;
-                final myKm = (snapshot.data?.data() as Map?)?['totalKm'] ?? 0.0;
-                final km = myKm is double ? myKm : (myKm as num).toDouble();
-                return Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(22),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF111827),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: const Color(0xFF00C896).withValues(alpha: 0.25),
+                    .collection('users')
+                    .doc(uid)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  final myDon =
+                      (snapshot.data?.data() as Map?)?['totalDonation'] ?? 0;
+                  final myKm =
+                      (snapshot.data?.data() as Map?)?['totalKm'] ?? 0.0;
+                  final km = myKm is double ? myKm : (myKm as num).toDouble();
+                  return Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(22),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF111827),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: const Color(0xFF00C896).withValues(alpha: 0.25),
+                      ),
                     ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                        const Text(
-                          '이번 달 기부',
-                          style: TextStyle(color: Color(0xB3FFFFFF), fontSize: 13),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          AppLanguage.t(
+                            en: 'This Month\'s Donation',
+                            ko: '이번 달 기부',
+                            ja: '今月の寄付',
+                            es: 'Donación de este mes',
+                            zh: '本月捐款',
+                          ),
+                          style: const TextStyle(
+                            color: Color(0xB3FFFFFF),
+                            fontSize: 13,
+                          ),
                         ),
                         const SizedBox(height: 8),
                         Text(
@@ -63,8 +83,11 @@ class DonationScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '${km.toStringAsFixed(1)}km 달림',
-                          style: const TextStyle(color: Color(0xB3FFFFFF),fontSize: 12),
+                          '${km.toStringAsFixed(1)}km ${AppLanguage.t(en: 'run', ko: '달림', ja: '走った', es: 'corrido', zh: '已跑')}',
+                          style: const TextStyle(
+                            color: Color(0xB3FFFFFF),
+                            fontSize: 12,
+                          ),
                         ),
                       ],
                     ),
@@ -72,18 +95,35 @@ class DonationScreen extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 20),
-              const Text(
-                '주간 기부 현황',
-                style: TextStyle(color: Color(0xB3FFFFFF), fontSize: 13),
+
+              // 주간 차트
+              Text(
+                AppLanguage.t(
+                  en: 'Weekly Donation Status',
+                  ko: '주간 기부 현황',
+                  ja: '週間寄付状況',
+                  es: 'Estado semanal de donación',
+                  zh: '每周捐款状况',
+                ),
+                style: const TextStyle(color: Color(0xB3FFFFFF), fontSize: 13),
               ),
               const SizedBox(height: 12),
               _WeeklyChart(uid: uid),
               const SizedBox(height: 20),
-              const Text(
-                '최근 기록',
-                style: TextStyle(color: Color(0xB3FFFFFF), fontSize: 13),
+
+              // 최근 기록
+              Text(
+                AppLanguage.t(
+                  en: 'Recent Records',
+                  ko: '최근 기록',
+                  ja: '最近の記録',
+                  es: 'Registros recientes',
+                  zh: '最近记录',
+                ),
+                style: const TextStyle(color: Color(0xB3FFFFFF), fontSize: 13),
               ),
-              const SizedBox(height : 8),
+              const SizedBox(height: 8),
+
               StreamBuilder<QuerySnapshot>(
                 stream: FirebaseFirestore.instance
                     .collection('users')
@@ -92,14 +132,20 @@ class DonationScreen extends StatelessWidget {
                     .orderBy('createdAt', descending: true)
                     .limit(10)
                     .snapshots(),
-                builder: (context,snapshot){
-                  if(!snapshot.hasData || snapshot.data!.docs.isEmpty){
-                    return const Center(
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return Center(
                       child: Padding(
-                        padding: EdgeInsets.all(20),
+                        padding: const EdgeInsets.all(20),
                         child: Text(
-                          '아직 러닝 기록이 없어요',
-                          style: TextStyle(color: Color(0xFF8899AA)),
+                          AppLanguage.t(
+                            en: 'No running records yet',
+                            ko: '아직 러닝 기록이 없어요',
+                            ja: 'まだランニング記録がありません',
+                            es: 'Aún no hay registros de carrera',
+                            zh: '还没有跑步记录',
+                          ),
+                          style: const TextStyle(color: Color(0xFF8899AA)),
                         ),
                       ),
                     );
@@ -111,22 +157,45 @@ class DonationScreen extends StatelessWidget {
                       final don = doc['donation'] as int;
                       final ts = doc['createdAt'] as Timestamp?;
                       final date = ts != null
-                          ? '${ts.toDate().month.toString().padLeft(2,'0')}.${ts.toDate().day.toString().padLeft(2,'0')}'
+                          ? '${ts.toDate().month.toString().padLeft(2, '0')}.${ts.toDate().day.toString().padLeft(2, '0')}'
                           : '--';
                       return Container(
-                        margin: const EdgeInsets.only(bottom : 8),
-                        padding: const EdgeInsets.symmetric(horizontal: 16,vertical: 12),
+                        margin: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0xFF111827),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.06),
+                          ),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(date, style: const TextStyle(color: Color(0xFF8899AA), fontSize: 12)),
-                            Text('${km.toStringAsFixed(1)} km', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
-                            Text('+₩$don', style: const TextStyle(color: Color(0xFF00C896), fontWeight: FontWeight.w500)),
+                            Text(
+                              date,
+                              style: const TextStyle(
+                                color: Color(0xFF8899AA),
+                                fontSize: 12,
+                              ),
+                            ),
+                            Text(
+                              '${km.toStringAsFixed(1)} km',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            Text(
+                              '+₩$don',
+                              style: const TextStyle(
+                                color: Color(0xFF00C896),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
                           ],
                         ),
                       );
@@ -148,6 +217,17 @@ class _WeeklyChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 요일 이름도 언어에 맞게 바꿔요!
+    final days = AppLanguage.current == 'ko'
+        ? ['월', '화', '수', '목', '금', '토', '일']
+        : AppLanguage.current == 'ja'
+        ? ['月', '火', '水', '木', '金', '土', '日']
+        : AppLanguage.current == 'es'
+        ? ['L', 'M', 'X', 'J', 'V', 'S', 'D']
+        : AppLanguage.current == 'zh'
+        ? ['一', '二', '三', '四', '五', '六', '日']
+        : ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection('users')
@@ -157,7 +237,6 @@ class _WeeklyChart extends StatelessWidget {
           .limit(7)
           .snapshots(),
       builder: (context, snapshot) {
-        final days = ['월', '화', '수', '목', '금', '토', '일'];
         final heights = List<double>.filled(7, 0.1);
 
         if (snapshot.hasData) {
@@ -196,7 +275,9 @@ class _WeeklyChart extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: isToday
                                 ? const Color(0xFF00C896)
-                                : const Color(0xFF00C896).withValues(alpha: 0.3),
+                                : const Color(
+                                    0xFF00C896,
+                                  ).withValues(alpha: 0.3),
                             borderRadius: BorderRadius.circular(4),
                           ),
                         ),
@@ -207,13 +288,20 @@ class _WeeklyChart extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Row(
-                children: days.map((d) => Expanded(
-                  child: Text(
-                    d,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: Color(0xFF8899AA), fontSize: 11),
-                  ),
-                )).toList(),
+                children: days
+                    .map(
+                      (d) => Expanded(
+                        child: Text(
+                          d,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: Color(0xFF8899AA),
+                            fontSize: 11,
+                          ),
+                        ),
+                      ),
+                    )
+                    .toList(),
               ),
             ],
           ),

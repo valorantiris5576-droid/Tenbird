@@ -6,6 +6,8 @@ import 'firebase_options.dart';
 import 'screens/splash_screen.dart';
 import 'screens/main_screen.dart';
 import 'screens/login_screen.dart';
+import 'app_language.dart';
+import 'app_language_notifier.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,8 +16,21 @@ void main() async {
   runApp(const StepGiveApp());
 }
 
-class StepGiveApp extends StatelessWidget {
+class StepGiveApp extends StatefulWidget {
   const StepGiveApp({super.key});
+
+  @override
+  State<StepGiveApp> createState() => _StepGiveAppState();
+}
+
+class _StepGiveAppState extends State<StepGiveApp> {
+  @override
+  void initState() {
+    super.initState();
+    AppLanguageNotifier.instance.addListener(() {
+      setState(() {});
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,9 +39,7 @@ class StepGiveApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         scaffoldBackgroundColor: const Color(0xFF0A0E1A),
-        colorScheme: const ColorScheme.dark(
-          primary: Color(0xFF00C896),
-        ),
+        colorScheme: const ColorScheme.dark(primary: Color(0xFF00C896)),
       ),
       home: const SplashScreen(),
     );
@@ -49,7 +62,7 @@ class AuthWrapper extends StatelessWidget {
             ),
           );
         }
-        if (snapshot.hasData) return MainScreen();
+        if (snapshot.hasData) return const MainScreen();
         return const LoginScreen();
       },
     );

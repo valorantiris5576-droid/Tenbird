@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'home_screen.dart';
 import 'donation_screen.dart';
 import 'running_screen.dart';
 import 'challenge_screen.dart';
 import 'profile_screen.dart';
+import 'home_screen.dart';
+import '../app_language.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -53,23 +54,56 @@ class MainScreenState extends State<MainScreen> {
           type: BottomNavigationBarType.fixed,
           selectedFontSize: 10,
           unselectedFontSize: 10,
-          items: const [
+          items: [
             BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              label: '홈',
-            ),
-            BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: '기부'),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.directions_run),
-              label: '러닝',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.emoji_events_outlined),
-              label: '챌린지',
+              icon: const Icon(Icons.home_outlined),
+              label: AppLanguage.t(
+                en: 'Home',
+                ko: '홈',
+                ja: 'ホーム',
+                es: 'Inicio',
+                zh: '首页',
+              ),
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline),
-              label: '프로필',
+              icon: const Icon(Icons.bar_chart),
+              label: AppLanguage.t(
+                en: 'Donate',
+                ko: '기부',
+                ja: '寄付',
+                es: 'Donar',
+                zh: '捐款',
+              ),
+            ),
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.directions_run),
+              label: AppLanguage.t(
+                en: 'Run',
+                ko: '러닝',
+                ja: 'ラン',
+                es: 'Correr',
+                zh: '跑步',
+              ),
+            ),
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.emoji_events_outlined),
+              label: AppLanguage.t(
+                en: 'Challenge',
+                ko: '챌린지',
+                ja: 'チャレンジ',
+                es: 'Desafío',
+                zh: '挑战',
+              ),
+            ),
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.person_outline),
+              label: AppLanguage.t(
+                en: 'Profile',
+                ko: '프로필',
+                ja: 'プロフィール',
+                es: 'Perfil',
+                zh: '我的',
+              ),
             ),
           ],
         ),
