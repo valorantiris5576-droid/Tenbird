@@ -3,10 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../app_language.dart';
 import 'team_manage_screen.dart';
-import 'team_onboarding_screen.dart';
 import '../models/badge_model.dart';
-import '../services/badge_service.dart';
 import 'badge_collection_screen.dart';
+import '../widgets/coach_overlay.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -19,6 +18,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _db = FirebaseFirestore.instance;
   bool _menuOpen = false;
   int _tabIndex = 0;
+
+  Color? _auraColor(double km) {
+    if (km >= 5000) return const Color(0xFFFFC107);
+    if (km >= 1000) return const Color(0xFF8B5CF6);
+    if (km >= 500) return const Color(0xFF3B82F6);
+    if (km >= 100) return const Color(0xFF34D399);
+    return null;
+  }
 
   String _badgeEmoji(String id) {
     const map = {
@@ -1146,43 +1153,78 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      GestureDetector(
-                        onTap: () => setState(() => _menuOpen = !_menuOpen),
-                        child: _menuOpen
-                            ? const Icon(
-                                Icons.close,
-                                color: Colors.white,
-                                size: 22,
-                              )
-                            : Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Container(
-                                    width: 18,
-                                    height: 2,
-                                    color: Colors.white,
-                                    margin: const EdgeInsets.symmetric(
-                                      vertical: 2,
-                                    ),
-                                  ),
-                                  Container(
-                                    width: 18,
-                                    height: 2,
-                                    color: Colors.white,
-                                    margin: const EdgeInsets.symmetric(
-                                      vertical: 2,
-                                    ),
-                                  ),
-                                  Container(
-                                    width: 18,
-                                    height: 2,
-                                    color: Colors.white,
-                                    margin: const EdgeInsets.symmetric(
-                                      vertical: 2,
-                                    ),
-                                  ),
-                                ],
+                      ValueListenableBuilder<String>(
+                        valueListenable: coachHighlightNotifier,
+                        builder: (context, highlightVal, child) {
+                          final glow =
+                              highlightVal == 'hamburger' && !_menuOpen;
+                          return GestureDetector(
+                            onTap: () {
+                              if (highlightVal == 'hamburger') {
+                                coachActionNotifier.value = 'hamburger';
+                              }
+                              setState(() => _menuOpen = !_menuOpen);
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: glow
+                                    ? Border.all(
+                                        color: const Color(0xFF00C896),
+                                        width: 2,
+                                      )
+                                    : null,
+                                boxShadow: glow
+                                    ? [
+                                        BoxShadow(
+                                          color: const Color(
+                                            0xFF00C896,
+                                          ).withValues(alpha: 0.5),
+                                          blurRadius: 14,
+                                          spreadRadius: 2,
+                                        ),
+                                      ]
+                                    : null,
                               ),
+                              child: _menuOpen
+                                  ? const Icon(
+                                      Icons.close,
+                                      color: Colors.white,
+                                      size: 22,
+                                    )
+                                  : Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Container(
+                                          width: 18,
+                                          height: 2,
+                                          color: Colors.white,
+                                          margin: const EdgeInsets.symmetric(
+                                            vertical: 2,
+                                          ),
+                                        ),
+                                        Container(
+                                          width: 18,
+                                          height: 2,
+                                          color: Colors.white,
+                                          margin: const EdgeInsets.symmetric(
+                                            vertical: 2,
+                                          ),
+                                        ),
+                                        Container(
+                                          width: 18,
+                                          height: 2,
+                                          color: Colors.white,
+                                          margin: const EdgeInsets.symmetric(
+                                            vertical: 2,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                            ),
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -1190,24 +1232,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Center(
                     child: Column(
                       children: [
-                        Container(
-                          width: 64,
-                          height: 64,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: const Color(
-                              0xFF00C896,
-                            ).withValues(alpha: 0.15),
-                            border: Border.all(
-                              color: const Color(0xFF00C896),
-                              width: 1.5,
-                            ),
-                          ),
-                          child: const Icon(
-                            Icons.person,
-                            color: Color(0xFF00C896),
-                            size: 32,
-                          ),
+                        StreamBuilder<DocumentSnapshot>(
+                          stream: _db.collection('users').doc(uid).snapshots(),
+                          builder: (context, snap) {
+                            final data = snap.data?.data() as Map?;
+                            final km = ((data?['totalKm'] ?? 0.0) as num)
+                                .toDouble();
+                            final aura = _auraColor(km);
+                            return Container(
+                              width: 64,
+                              height: 64,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: const Color(
+                                  0xFF00C896,
+                                ).withValues(alpha: 0.15),
+                                border: Border.all(
+                                  color: aura ?? const Color(0xFF00C896),
+                                  width: aura != null ? 3 : 1.5,
+                                ),
+                                boxShadow: aura != null
+                                    ? [
+                                        BoxShadow(
+                                          color: aura.withValues(alpha: 0.55),
+                                          blurRadius: 18,
+                                          spreadRadius: 2,
+                                        ),
+                                      ]
+                                    : null,
+                              ),
+                              child: const Icon(
+                                Icons.person,
+                                color: Color(0xFF00C896),
+                                size: 32,
+                              ),
+                            );
+                          },
                         ),
                         const SizedBox(height: 10),
                         Text(
@@ -1943,29 +2003,51 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     children: [
                                       Row(
                                         children: [
-                                          Container(
-                                            width: 40,
-                                            height: 40,
-                                            decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              color: const Color(
-                                                0xFF00C896,
-                                              ).withValues(alpha: 0.15),
-                                              border: Border.all(
-                                                color: const Color(0xFF00C896),
-                                                width: 1.5,
-                                              ),
-                                            ),
-                                            child: Center(
-                                              child: Text(
-                                                initials,
-                                                style: const TextStyle(
-                                                  color: Color(0xFF00C896),
-                                                  fontSize: 13,
-                                                  fontWeight: FontWeight.w500,
+                                          Builder(
+                                            builder: (context) {
+                                              final aura = _auraColor(friendKm);
+                                              return Container(
+                                                width: 40,
+                                                height: 40,
+                                                decoration: BoxDecoration(
+                                                  shape: BoxShape.circle,
+                                                  color: const Color(
+                                                    0xFF00C896,
+                                                  ).withValues(alpha: 0.15),
+                                                  border: Border.all(
+                                                    color:
+                                                        aura ??
+                                                        const Color(0xFF00C896),
+                                                    width: aura != null
+                                                        ? 2.5
+                                                        : 1.5,
+                                                  ),
+                                                  boxShadow: aura != null
+                                                      ? [
+                                                          BoxShadow(
+                                                            color: aura
+                                                                .withValues(
+                                                                  alpha: 0.5,
+                                                                ),
+                                                            blurRadius: 10,
+                                                            spreadRadius: 1,
+                                                          ),
+                                                        ]
+                                                      : null,
                                                 ),
-                                              ),
-                                            ),
+                                                child: Center(
+                                                  child: Text(
+                                                    initials,
+                                                    style: const TextStyle(
+                                                      color: Color(0xFF00C896),
+                                                      fontSize: 13,
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                    ),
+                                                  ),
+                                                ),
+                                              );
+                                            },
                                           ),
                                           const SizedBox(width: 12),
                                           Expanded(
@@ -2375,139 +2457,183 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ],
                         ),
                       ),
-                      _MenuItem(
-                        icon: Icons.lock_outline,
-                        title: AppLanguage.t(
-                          en: 'Security',
-                          ko: '보안',
-                          ja: 'セキュリティ',
-                          es: 'Seguridad',
-                          zh: '安全',
-                        ),
-                        subtitle: AppLanguage.t(
-                          en: 'Password · Email',
-                          ko: '비밀번호 · 이메일',
-                          ja: 'パスワード・メール',
-                          es: 'Contraseña · Email',
-                          zh: '密码 · 邮箱',
-                        ),
-                        onTap: _showSecurityDialog,
-                      ),
-                      _MenuItem(
-                        icon: Icons.person_add_outlined,
-                        title: AppLanguage.t(
-                          en: 'Add Friend',
-                          ko: '친구 추가',
-                          ja: 'フレンド追加',
-                          es: 'Agregar amigo',
-                          zh: '添加好友',
-                        ),
-                        subtitle: AppLanguage.t(
-                          en: 'Find friends to run with',
-                          ko: '함께 달릴 친구 찾기',
-                          ja: '一緒に走る友達を探す',
-                          es: 'Encuentra amigos para correr',
-                          zh: '寻找一起跑步的好友',
-                        ),
-                        onTap: _showFriendDialog,
-                      ),
-                      _MenuItem(
-                        icon: Icons.groups_outlined,
-                        title: AppLanguage.t(
-                          en: 'Team Management',
-                          ko: '팀 관리',
-                          ja: 'チーム管理',
-                          es: 'Gestión de equipo',
-                          zh: '团队管理',
-                        ),
-                        subtitle: AppLanguage.t(
-                          en: 'Invite code · Leave team',
-                          ko: '코드 확인 · 팀 나가기',
-                          ja: 'コード確認・脱退',
-                          es: 'Código · Salir del equipo',
-                          zh: '邀请码 · 退出团队',
-                        ),
-                        onTap: () {
-                          setState(() => _menuOpen = false);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const TeamManageScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      _MenuItem(
-                        icon: Icons.location_on_outlined,
-                        title: AppLanguage.t(
-                          en: 'Change Location',
-                          ko: '동네 변경',
-                          ja: '地域変更',
-                          es: 'Cambiar ubicación',
-                          zh: '更改地区',
-                        ),
-                        subtitle: AppLanguage.t(
-                          en: 'Set your activity area',
-                          ko: '내 활동 지역 설정',
-                          ja: '活動地域を設定',
-                          es: 'Configura tu área de actividad',
-                          zh: '设置您的活动区域',
-                        ),
-                        onTap: _showLocationDialog,
-                      ),
-                      _MenuItem(
-                        icon: Icons.help_outline,
-                        title: AppLanguage.t(
-                          en: 'Help',
-                          ko: '도움말',
-                          ja: 'ヘルプ',
-                          es: 'Ayuda',
-                          zh: '帮助',
-                        ),
-                        subtitle: AppLanguage.t(
-                          en: 'FAQ',
-                          ko: '자주 묻는 질문',
-                          ja: 'よくある質問',
-                          es: 'Preguntas frecuentes',
-                          zh: '常见问题',
-                        ),
-                        onTap: _showHelpDialog,
-                      ),
-                      _MenuItem(
-                        icon: Icons.notifications_outlined,
-                        title: AppLanguage.t(
-                          en: 'Notifications',
-                          ko: '알림 설정',
-                          ja: '通知設定',
-                          es: 'Notificaciones',
-                          zh: '通知',
-                        ),
-                        subtitle: AppLanguage.t(
-                          en: 'Manage push notifications',
-                          ko: '푸시 알림 관리',
-                          ja: 'プッシュ通知を管理',
-                          es: 'Gestionar notificaciones push',
-                          zh: '管理推送通知',
-                        ),
-                        onTap: _showNotificationDialog,
-                      ),
-                      const Divider(color: Color(0xFF1E2535)),
-                      ListTile(
-                        leading: const Icon(
-                          Icons.logout,
-                          color: Colors.redAccent,
-                        ),
-                        title: Text(
-                          AppLanguage.t(
-                            en: 'Logout',
-                            ko: '로그아웃',
-                            ja: 'ログアウト',
-                            es: 'Cerrar sesión',
-                            zh: '退出登录',
+                      Expanded(
+                        child: SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _MenuItem(
+                                icon: Icons.lock_outline,
+                                title: AppLanguage.t(
+                                  en: 'Security',
+                                  ko: '보안',
+                                  ja: 'セキュリティ',
+                                  es: 'Seguridad',
+                                  zh: '安全',
+                                ),
+                                subtitle: AppLanguage.t(
+                                  en: 'Password · Email',
+                                  ko: '비밀번호 · 이메일',
+                                  ja: 'パスワード・メール',
+                                  es: 'Contraseña · Email',
+                                  zh: '密码 · 邮箱',
+                                ),
+                                onTap: _showSecurityDialog,
+                              ),
+                              _MenuItem(
+                                icon: Icons.person_add_outlined,
+                                title: AppLanguage.t(
+                                  en: 'Add Friend',
+                                  ko: '친구 추가',
+                                  ja: 'フレンド追加',
+                                  es: 'Agregar amigo',
+                                  zh: '添加好友',
+                                ),
+                                subtitle: AppLanguage.t(
+                                  en: 'Find friends to run with',
+                                  ko: '함께 달릴 친구 찾기',
+                                  ja: '一緒に走る友達を探す',
+                                  es: 'Encuentra amigos para correr',
+                                  zh: '寻找一起跑步的好友',
+                                ),
+                                onTap: _showFriendDialog,
+                              ),
+                              ValueListenableBuilder<String>(
+                                valueListenable: coachHighlightNotifier,
+                                builder: (context, highlightVal, child) {
+                                  final glow = highlightVal == 'team';
+                                  return Container(
+                                    margin: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: glow
+                                          ? Border.all(
+                                              color: const Color(0xFF00C896),
+                                              width: 2,
+                                            )
+                                          : null,
+                                      boxShadow: glow
+                                          ? [
+                                              BoxShadow(
+                                                color: const Color(
+                                                  0xFF00C896,
+                                                ).withValues(alpha: 0.5),
+                                                blurRadius: 16,
+                                                spreadRadius: 2,
+                                              ),
+                                            ]
+                                          : null,
+                                    ),
+                                    child: _MenuItem(
+                                      icon: Icons.groups_outlined,
+                                      title: AppLanguage.t(
+                                        en: 'Team Management',
+                                        ko: '팀 관리',
+                                        ja: 'チーム管理',
+                                        es: 'Gestión de equipo',
+                                        zh: '团队管理',
+                                      ),
+                                      subtitle: AppLanguage.t(
+                                        en: 'Invite code · Leave team',
+                                        ko: '코드 확인 · 팀 나가기',
+                                        ja: 'コード確認・脱退',
+                                        es: 'Código · Salir del equipo',
+                                        zh: '邀请码 · 退出团队',
+                                      ),
+                                      onTap: () {
+                                        setState(() => _menuOpen = false);
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) =>
+                                                const TeamManageScreen(),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  );
+                                },
+                              ),
+                              _MenuItem(
+                                icon: Icons.location_on_outlined,
+                                title: AppLanguage.t(
+                                  en: 'Change Location',
+                                  ko: '동네 변경',
+                                  ja: '地域変更',
+                                  es: 'Cambiar ubicación',
+                                  zh: '更改地区',
+                                ),
+                                subtitle: AppLanguage.t(
+                                  en: 'Set your activity area',
+                                  ko: '내 활동 지역 설정',
+                                  ja: '活動地域を設定',
+                                  es: 'Configura tu área de actividad',
+                                  zh: '设置您的活动区域',
+                                ),
+                                onTap: _showLocationDialog,
+                              ),
+                              _MenuItem(
+                                icon: Icons.help_outline,
+                                title: AppLanguage.t(
+                                  en: 'Help',
+                                  ko: '도움말',
+                                  ja: 'ヘルプ',
+                                  es: 'Ayuda',
+                                  zh: '帮助',
+                                ),
+                                subtitle: AppLanguage.t(
+                                  en: 'FAQ',
+                                  ko: '자주 묻는 질문',
+                                  ja: 'よくある質問',
+                                  es: 'Preguntas frecuentes',
+                                  zh: '常见问题',
+                                ),
+                                onTap: _showHelpDialog,
+                              ),
+                              _MenuItem(
+                                icon: Icons.notifications_outlined,
+                                title: AppLanguage.t(
+                                  en: 'Notifications',
+                                  ko: '알림 설정',
+                                  ja: '通知設定',
+                                  es: 'Notificaciones',
+                                  zh: '通知',
+                                ),
+                                subtitle: AppLanguage.t(
+                                  en: 'Manage push notifications',
+                                  ko: '푸시 알림 관리',
+                                  ja: 'プッシュ通知を管理',
+                                  es: 'Gestionar notificaciones push',
+                                  zh: '管理推送通知',
+                                ),
+                                onTap: _showNotificationDialog,
+                              ),
+                              const Divider(color: Color(0xFF1E2535)),
+                              ListTile(
+                                leading: const Icon(
+                                  Icons.logout,
+                                  color: Colors.redAccent,
+                                ),
+                                title: Text(
+                                  AppLanguage.t(
+                                    en: 'Logout',
+                                    ko: '로그아웃',
+                                    ja: 'ログアウト',
+                                    es: 'Cerrar sesión',
+                                    zh: '退出登录',
+                                  ),
+                                  style: const TextStyle(
+                                    color: Colors.redAccent,
+                                  ),
+                                ),
+                                onTap: _signOut,
+                              ),
+                            ],
                           ),
-                          style: const TextStyle(color: Colors.redAccent),
                         ),
-                        onTap: _signOut,
                       ),
                     ],
                   ),
