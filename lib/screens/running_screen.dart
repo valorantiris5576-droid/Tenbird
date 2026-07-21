@@ -55,6 +55,45 @@ class _RunningScreenState extends State<RunningScreen> {
     return true;
   }
 
+  void _showComingSoon() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF141824),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          AppLanguage.t(
+            en: 'Coming Soon',
+            ko: '준비 중',
+            ja: '準備中',
+            es: 'Próximamente',
+            zh: '即将推出',
+          ),
+          style: const TextStyle(color: Colors.white),
+        ),
+        content: Text(
+          AppLanguage.t(
+            en: 'This feature is coming soon!',
+            ko: '이 기능은 준비중이에요!',
+            ja: 'この機能は準備中です！',
+            es: '¡Esta función estará disponible pronto!',
+            zh: '此功能即将推出！',
+          ),
+          style: const TextStyle(color: Color(0xB3FFFFFF), fontSize: 13),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              AppLanguage.t(en: 'OK', ko: '확인', ja: 'OK', es: 'OK', zh: '确认'),
+              style: const TextStyle(color: Color(0xFF00C896)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _startStop() async {
     if (_isRunning) {
       _timer?.cancel();
@@ -129,9 +168,10 @@ class _RunningScreenState extends State<RunningScreen> {
     if (user == null || _distanceKm < 0.01) return;
 
     final donation = _donation;
+    final userRef = _db.collection('users').doc(user.uid);
+
     final batch = _db.batch();
 
-    final userRef = _db.collection('users').doc(user.uid);
     batch.set(userRef, {
       'totalDonation': FieldValue.increment(donation),
       'totalKm': FieldValue.increment(_distanceKm),
@@ -156,11 +196,125 @@ class _RunningScreenState extends State<RunningScreen> {
 
     await batch.commit();
 
+    final savedDistance = _distanceKm;
+
     setState(() {
       _distanceKm = 0.0;
       _seconds = 0;
       _routePoints.clear();
     });
+
+    if (mounted) {
+      _showEchoPrompt(user.uid, savedDistance);
+    }
+  }
+
+  void _showEchoPrompt(String uid, double distanceKm) {
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF141824),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          AppLanguage.t(
+            en: 'Nice work today!',
+            ko: '수고했어 오늘도!',
+            ja: '今日もお疲れさま！',
+            es: '¡Buen trabajo hoy!',
+            zh: '今天辛苦了！',
+          ),
+          style: const TextStyle(color: Colors.white, fontSize: 17),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              AppLanguage.t(
+                en: 'Leave a note for yourself, 1 year from now.',
+                ko: '1년 후의 나에게 한마디 남겨볼래?',
+                ja: '1年後の自分にひとこと残そう。',
+                es: 'Déjate una nota para dentro de 1 año.',
+                zh: '给一年后的自己留句话吧。',
+              ),
+              style: const TextStyle(color: Color(0xB3FFFFFF), fontSize: 13),
+            ),
+            const SizedBox(height: 14),
+            TextField(
+              controller: controller,
+              maxLines: 3,
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                hintText: AppLanguage.t(
+                  en: 'Write a short note...',
+                  ko: '짧게 남겨봐...',
+                  ja: '短く書いてみて...',
+                  es: 'Escribe algo corto...',
+                  zh: '写几句话...',
+                ),
+                hintStyle: const TextStyle(color: Color(0xFF4A5568)),
+                filled: true,
+                fillColor: const Color(0xFF0A0E1A),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFF1E2535)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFF00C896)),
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(
+              AppLanguage.t(
+                en: 'Skip',
+                ko: '건너뛰기',
+                ja: 'スキップ',
+                es: 'Omitir',
+                zh: '跳过',
+              ),
+              style: const TextStyle(color: Color(0xFF8899AA)),
+            ),
+          ),
+          TextButton(
+            onPressed: () async {
+              final text = controller.text.trim();
+              Navigator.pop(ctx);
+              if (text.isEmpty) return;
+              final now = DateTime.now();
+              await _db.collection('users').doc(uid).collection('echoes').add({
+                'text': text,
+                'distanceKm': distanceKm,
+                'createdAt': FieldValue.serverTimestamp(),
+                'revealAt': Timestamp.fromDate(
+                  now.add(const Duration(days: 365)),
+                ),
+                'shown': false,
+              });
+            },
+            child: Text(
+              AppLanguage.t(
+                en: 'Save',
+                ko: '저장',
+                ja: '保存',
+                es: 'Guardar',
+                zh: '保存',
+              ),
+              style: const TextStyle(
+                color: Color(0xFF00C896),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -287,7 +441,7 @@ class _RunningScreenState extends State<RunningScreen> {
                     children: [
                       TileLayer(
                         urlTemplate:
-                            'https://tiles.stadiamaps.com/tiles/outdoors/{z}/{x}/{y}.png',
+                            'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                         userAgentPackageName: 'com.example.run_donate',
                       ),
                       if (_routePoints.length > 1)
@@ -326,20 +480,23 @@ class _RunningScreenState extends State<RunningScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            Container(
-                              width: 44,
-                              height: 44,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF141824),
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: const Color(0xFF1E2535),
+                            GestureDetector(
+                              onTap: _showComingSoon,
+                              child: Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF141824),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: const Color(0xFF1E2535),
+                                  ),
                                 ),
-                              ),
-                              child: const Icon(
-                                Icons.settings,
-                                color: Color(0xFF8899AA),
-                                size: 20,
+                                child: const Icon(
+                                  Icons.settings,
+                                  color: Color(0xFF8899AA),
+                                  size: 20,
+                                ),
                               ),
                             ),
                             GestureDetector(
@@ -358,36 +515,42 @@ class _RunningScreenState extends State<RunningScreen> {
                                 ),
                               ),
                             ),
-                            Container(
-                              width: 44,
-                              height: 44,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF141824),
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: const Color(0xFF1E2535),
+                            GestureDetector(
+                              onTap: _showComingSoon,
+                              child: Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF141824),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: const Color(0xFF1E2535),
+                                  ),
                                 ),
-                              ),
-                              child: const Icon(
-                                Icons.music_note,
-                                color: Color(0xFF8899AA),
-                                size: 20,
+                                child: const Icon(
+                                  Icons.music_note,
+                                  color: Color(0xFF8899AA),
+                                  size: 20,
+                                ),
                               ),
                             ),
                           ],
                         ),
                         const SizedBox(height: 12),
-                        Text(
-                          AppLanguage.t(
-                            en: 'Set Goal',
-                            ko: '목표 설정',
-                            ja: '目標設定',
-                            es: 'Establecer meta',
-                            zh: '设定目标',
-                          ),
-                          style: const TextStyle(
-                            color: Color(0xFF8899AA),
-                            fontSize: 12,
+                        GestureDetector(
+                          onTap: _showComingSoon,
+                          child: Text(
+                            AppLanguage.t(
+                              en: 'Set Goal',
+                              ko: '목표 설정',
+                              ja: '目標設定',
+                              es: 'Establecer meta',
+                              zh: '设定目标',
+                            ),
+                            style: const TextStyle(
+                              color: Color(0xFF8899AA),
+                              fontSize: 12,
+                            ),
                           ),
                         ),
                       ],
